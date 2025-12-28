@@ -126,4 +126,3 @@ def get_tracer(name: Optional[str] = None) -> trace.Tracer:
         OpenTelemetry tracer instance
     """
     return trace.get_tracer(name or __name__)
-
