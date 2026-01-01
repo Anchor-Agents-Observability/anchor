@@ -42,7 +42,8 @@ def setup_tracing(
         application_name: Name of the application/service being instrumented
         environment: Deployment environment (e.g., "production", "staging", "development")
         tracer: Optional external tracer to use instead of creating a new one
-        otlp_endpoint: OTLP endpoint URL for exporting traces
+        otlp_endpoint: OTLP endpoint URL for exporting traces (base URL only, e.g., "http://127.0.0.1:4318")
+                      Note: OTLP HTTP exporter automatically appends /v1/traces, so don't include it
         otlp_headers: Optional headers dict for OTLP exporter authentication
         disable_batch: If True, use SimpleSpanProcessor instead of BatchSpanProcessor
         

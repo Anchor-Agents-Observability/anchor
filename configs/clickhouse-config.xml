@@ -29,10 +29,10 @@
         <count>10</count>
     </logger>
     
-    <!-- Default user (no password) -->
+    <!-- Default user with password -->
     <users>
         <default>
-            <password></password>
+            <password>default</password>
             <networks>
                 <ip>::/0</ip>
             </networks>

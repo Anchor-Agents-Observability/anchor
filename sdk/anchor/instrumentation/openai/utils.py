@@ -10,7 +10,7 @@ def set_server_address_and_port(instance, default_address: str = "api.openai.com
     Extract server address and port from OpenAI client instance.
     
     Args:
-        instance: OpenAI client instance
+        instance: OpenAI resource instance (e.g., Completions) or client instance
         default_address: Default server address if not found
         default_port: Default port if not found
         
@@ -20,9 +20,24 @@ def set_server_address_and_port(instance, default_address: str = "api.openai.com
     server_address = default_address
     server_port = default_port
     
+    # Try to get client from resource instance (e.g., Completions has _client)
+    client = instance
+    if hasattr(instance, '_client'):
+        client = instance._client
+    elif hasattr(instance, 'client'):
+        client = instance.client
+    
     # Try to get from base_url if available
-    if hasattr(instance, 'base_url') and instance.base_url:
+    if hasattr(client, 'base_url') and client.base_url:
         # Parse base_url to extract address and port
+        from urllib.parse import urlparse
+        parsed = urlparse(str(client.base_url))
+        if parsed.hostname:
+            server_address = parsed.hostname
+        if parsed.port:
+            server_port = parsed.port
+    elif hasattr(instance, 'base_url') and instance.base_url:
+        # Fallback: try instance directly
         from urllib.parse import urlparse
         parsed = urlparse(str(instance.base_url))
         if parsed.hostname:
