@@ -18,6 +18,7 @@ def init(
     otlp_headers: Optional[dict] = None,
     instrumentations: Optional[list[str]] = None,
     disable_batch: bool = False,
+    **kwargs,
 ) -> Optional[trace_api.Tracer]:
     """
     Initialize Anchor SDK with tracing and instrumentations.
@@ -34,6 +35,7 @@ def init(
         otlp_headers: Optional headers for OTLP authentication
         instrumentations: List of instrumentations to enable (e.g., ["openai"])
         disable_batch: If True, use SimpleSpanProcessor (for debugging)
+        **kwargs: Additional configuration options
         
     Returns:
         OpenTelemetry tracer instance, or None if setup fails
@@ -42,13 +44,15 @@ def init(
         ```python
         import anchor
         
-        # Initialize with console exporter (for testing)
-        anchor.init(application_name="my-app", environment="development")
+        # Simple initialization (matches architecture design)
+        # Note: OTLP HTTP exporter automatically appends /v1/traces, so use base URL only
+        anchor.init(otlp_endpoint="http://localhost:4318")
         
-        # Or with OTLP endpoint
+        # Or with more options
         anchor.init(
             application_name="my-app",
-            otlp_endpoint="http://localhost:4318/v1/traces"
+            environment="development",
+            otlp_endpoint="http://127.0.0.1:4318"  # NOT http://localhost:4318/v1/traces
         )
         
         # Now use OpenAI - it's automatically instrumented!

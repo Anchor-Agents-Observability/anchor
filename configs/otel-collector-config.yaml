@@ -29,6 +29,8 @@ exporters:
     endpoint: tcp://${env:CLICKHOUSE_HOST}:9000?dial_timeout=10s
     database: ${env:CLICKHOUSE_DATABASE}
     username: ${env:CLICKHOUSE_USERNAME}
+    # For default user with no password, use empty string
+    # If you have a password, set CLICKHOUSE_PASSWORD environment variable
     password: ${env:CLICKHOUSE_PASSWORD}
     ttl: 730h
     logs_table_name: otel_logs

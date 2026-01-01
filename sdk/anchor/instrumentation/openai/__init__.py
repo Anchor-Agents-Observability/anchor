@@ -5,7 +5,7 @@ Initialize auto-instrumentation for OpenAI.
 from typing import Collection, Optional, Any
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry import trace
-from wrapt import wrap_function_wrapper
+from wrapt import wrap_function_wrapper, wrap_object
 
 from anchor.instrumentation.openai.openai import (
     chat_completions,
@@ -64,17 +64,48 @@ class openaiInstrumentor(BaseInstrumentor):
     def instrument(self, **kwargs):
         """
         Instrument OpenAI client methods.
+        
+        Wraps methods on the OpenAI client instance when it's created.
+        Uses the correct approach: client.chat.completions.create(...)
         """
-
-        # where, what, how
-        # string, string, wrap_fn
-        wrap_function_wrapper("openai.resources.chat.Completions", "create", chat_completions(self._config))
-        wrap_function_wrapper("openai.resources.chat.Completions", "create_parse", chat_completions_parse(self._config))
-        wrap_function_wrapper("openai.resources.responses", "responses", responses(self._config))
-        wrap_function_wrapper("openai.resources.embeddings.Embeddings", "create", embedding(self._config))
-        wrap_function_wrapper("openai.resources.images.Images", "create", image_generate(self._config))
-        wrap_function_wrapper("openai.resources.images.Images", "create_variation", image_variatons(self._config))
-        wrap_function_wrapper("openai.resources.audio.speech.Speech", "create", audio_create(self._config))
+        try:
+            # Import OpenAI to access the classes
+            from openai import OpenAI
+            from openai.resources.chat.completions import Completions
+            from openai.resources.embeddings import Embeddings
+            from openai.resources.images import Images
+            from openai.resources.audio.speech import Speech
+            
+            # Wrap the create method on Completions class
+            if hasattr(Completions, "create"):
+                wrap_function_wrapper(Completions, "create", chat_completions(self._config))
+            
+            # Wrap create_parse if it exists (newer OpenAI versions)
+            if hasattr(Completions, "create_parse"):
+                wrap_function_wrapper(Completions, "create_parse", chat_completions_parse(self._config))
+            
+            # Wrap embeddings
+            if hasattr(Embeddings, "create"):
+                wrap_function_wrapper(Embeddings, "create", embedding(self._config))
+            
+            # Wrap images
+            if hasattr(Images, "create"):
+                wrap_function_wrapper(Images, "create", image_generate(self._config))
+            if hasattr(Images, "create_variation"):
+                wrap_function_wrapper(Images, "create_variation", image_variatons(self._config))
+            
+            # Wrap audio/speech
+            if hasattr(Speech, "create"):
+                wrap_function_wrapper(Speech, "create", audio_create(self._config))
+            
+        except ImportError as e:
+            # If OpenAI is not installed, log warning but don't fail
+            print(f"Warning: OpenAI not installed or incompatible version: {e}")
+            raise
+        except Exception as e:
+            # Catch any other errors during instrumentation
+            print(f"Warning: Failed to instrument openai: {e}")
+            # Don't raise - allow the app to continue without instrumentation
 
     def instrumentation_dependencies(self) -> Collection[str]:
         """
@@ -82,4 +113,8 @@ class openaiInstrumentor(BaseInstrumentor):
         """
         return ["openai >= 1.92.0"]
 
-   
+    def _uninstrument(self, **kwargs):
+        """
+        Uninstrument OpenAI client methods.
+        """
+        pass
