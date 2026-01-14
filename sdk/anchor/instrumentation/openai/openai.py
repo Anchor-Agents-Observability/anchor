@@ -170,32 +170,32 @@ def process_chat_response(
     response_dict = response_to_dict(response)
     
     # Extract response information
-    if 'id' in response_dict:
+    if 'id' in response_dict and response_dict['id'] is not None:
         span.set_attribute(SemanticConventions.GEN_AI_RESPONSE_ID, response_dict['id'])
-    if 'model' in response_dict:
+    if 'model' in response_dict and response_dict['model'] is not None:
         span.set_attribute(SemanticConventions.GEN_AI_RESPONSE_MODEL, response_dict['model'])
-    if 'system_fingerprint' in response_dict:
+    if 'system_fingerprint' in response_dict and response_dict['system_fingerprint'] is not None:
         span.set_attribute(SemanticConventions.GEN_AI_RESPONSE_SYSTEM_FINGERPRINT, response_dict['system_fingerprint'])
     
     # Extract usage information
     if 'usage' in response_dict:
         usage = response_dict['usage']
         if isinstance(usage, dict):
-            if 'prompt_tokens' in usage:
+            if 'prompt_tokens' in usage and usage['prompt_tokens'] is not None:
                 span.set_attribute(SemanticConventions.GEN_AI_USAGE_INPUT_TOKENS, usage['prompt_tokens'])
-            if 'completion_tokens' in usage:
+            if 'completion_tokens' in usage and usage['completion_tokens'] is not None:
                 span.set_attribute(SemanticConventions.GEN_AI_USAGE_OUTPUT_TOKENS, usage['completion_tokens'])
-            if 'total_tokens' in usage:
+            if 'total_tokens' in usage and usage['total_tokens'] is not None:
                 span.set_attribute(SemanticConventions.GEN_AI_CLIENT_TOKEN_USAGE, usage['total_tokens'])
-            if 'reasoning_tokens' in usage:
+            if 'reasoning_tokens' in usage and usage['reasoning_tokens'] is not None:
                 span.set_attribute(SemanticConventions.GEN_AI_USAGE_REASONING_TOKENS, usage['reasoning_tokens'])
     
     # Extract finish reasons
     if 'choices' in response_dict and response_dict['choices']:
         finish_reasons = []
         for choice in response_dict['choices']:
-            if isinstance(choice, dict) and 'finish_reason' in choice:
-                finish_reasons.append(choice['finish_reason'])
+            if isinstance(choice, dict) and 'finish_reason' in choice and choice['finish_reason'] is not None:
+                finish_reasons.append(str(choice['finish_reason']))
         if finish_reasons:
             span.set_attribute(SemanticConventions.GEN_AI_RESPONSE_FINISH_REASON, ",".join(finish_reasons))
     
@@ -261,14 +261,14 @@ def process_embedding_response(
     # Convert response to dict for easier access
     response_dict = response_to_dict(response)
     
-    if 'model' in response_dict:
+    if 'model' in response_dict and response_dict['model'] is not None:
         span.set_attribute(SemanticConventions.GEN_AI_RESPONSE_MODEL, response_dict['model'])
     if 'usage' in response_dict:
         usage = response_dict['usage']
         if isinstance(usage, dict):
-            if 'prompt_tokens' in usage:
+            if 'prompt_tokens' in usage and usage['prompt_tokens'] is not None:
                 span.set_attribute(SemanticConventions.GEN_AI_USAGE_INPUT_TOKENS, usage['prompt_tokens'])
-            if 'total_tokens' in usage:
+            if 'total_tokens' in usage and usage['total_tokens'] is not None:
                 span.set_attribute(SemanticConventions.GEN_AI_CLIENT_TOKEN_USAGE, usage['total_tokens'])
     
     if 'data' in response_dict:

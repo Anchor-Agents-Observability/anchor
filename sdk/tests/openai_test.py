@@ -84,19 +84,19 @@ def test_openai_chat_completion():
         
         # Verify response
         assert response.choices[0].message.content is not None
-        print(f"\n✅ Response: {response.choices[0].message.content}")
-        print("\n✅ Test passed! Check console or OTLP endpoint for trace data.")
+        print(f"\n Response: {response.choices[0].message.content}")
+        print("\n Test passed! Check console or OTLP endpoint for trace data.")
         
         return response
     except Exception as e:
         # Handle API errors gracefully
         error_msg = str(e)
         if "429" in error_msg or "quota" in error_msg.lower():
-            print(f"\n⚠️  OpenAI API Error (quota/billing): {e}")
+            print(f"\n  OpenAI API Error (quota/billing): {e}")
             print("   This is expected if your API key has no billing enabled.")
             print("   The instrumentation still worked - check console for span data!")
         else:
-            print(f"\n❌ Error: {e}")
+            print(f"\n Error: {e}")
         raise
 
 
