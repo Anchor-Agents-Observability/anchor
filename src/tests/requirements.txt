@@ -1,0 +1,3 @@
+# Test dependencies - installs everything needed to run tests
+-r ../../requirements.txt
+pytest>=7.0.0

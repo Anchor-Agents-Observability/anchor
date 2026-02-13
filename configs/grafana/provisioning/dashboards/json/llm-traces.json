@@ -1,0 +1,390 @@
+{
+  "uid": "anchor-llm-traces",
+  "title": "Anchor SDK - LLM Traces",
+  "tags": ["anchor", "llm", "openai"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total API Calls",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT count() AS total FROM default.otel_traces",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 10 },
+              { "color": "yellow", "value": 100 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Total Input Tokens",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens'])) AS input_tokens FROM default.otel_traces",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "purple", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Total Output Tokens",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])) AS output_tokens FROM default.otel_traces",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "orange", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Avg Latency (sec)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT round(avg(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 2) AS avg_duration FROM default.otel_traces",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Error Rate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT round(countIf(StatusCode = 'Error') / count() * 100, 1) AS error_pct FROM default.otel_traces",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Models Used",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT count(DISTINCT SpanAttributes['gen_ai.response.model']) AS models FROM default.otel_traces",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "cyan", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 7,
+      "title": "API Calls Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT toStartOfMinute(Timestamp) AS time, count() AS calls FROM default.otel_traces GROUP BY time ORDER BY time",
+          "format": 0,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "scheme",
+            "lineWidth": 1
+          },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list" }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Latency Over Time (seconds)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT Timestamp AS time, toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration']) AS latency_sec, SpanAttributes['gen_ai.request.model'] AS model FROM default.otel_traces ORDER BY time",
+          "format": 0,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 8,
+            "fillOpacity": 20
+          },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list" }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Token Usage Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT Timestamp AS time, toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens']) AS input_tokens, toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens']) AS output_tokens FROM default.otel_traces ORDER BY time",
+          "format": 0,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "stacking": { "mode": "normal" }
+          },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list" }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Calls by Model",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 12 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT SpanAttributes['gen_ai.response.model'] AS model, count() AS calls FROM default.otel_traces GROUP BY model ORDER BY calls DESC",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Calls by Finish Reason",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 12 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT SpanAttributes['gen_ai.response.finish_reasons'] AS reason, count() AS calls FROM default.otel_traces GROUP BY reason ORDER BY calls DESC",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Request & Response Log",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT Timestamp, SpanAttributes['gen_ai.request.model'] AS model, SpanAttributes['gen_ai.user.message.0'] AS user_request, SpanAttributes['gen_ai.assistant.message.0'] AS ai_response, toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens']) AS input_tokens, toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens']) AS output_tokens, round(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration']), 2) AS latency_sec, SpanAttributes['gen_ai.response.finish_reasons'] AS finish_reason, StatusCode FROM default.otel_traces ORDER BY Timestamp DESC",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "user_request" },
+            "properties": [{ "id": "custom.width", "value": 300 }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "ai_response" },
+            "properties": [{ "id": "custom.width", "value": 300 }]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Timestamp", "desc": true }]
+      }
+    },
+    {
+      "id": 13,
+      "title": "Avg Tokens per Request by Model",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT SpanAttributes['gen_ai.response.model'] AS model, round(avg(toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens'])), 0) AS avg_input_tokens, round(avg(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])), 0) AS avg_output_tokens FROM default.otel_traces GROUP BY model ORDER BY model",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 70 },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "stacking": "normal",
+        "legend": { "displayMode": "list" }
+      }
+    },
+    {
+      "id": 14,
+      "title": "Avg Latency by Model (sec)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 30 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "targets": [
+        {
+          "rawSql": "SELECT SpanAttributes['gen_ai.response.model'] AS model, round(avg(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 3) AS avg_latency_sec, round(max(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 3) AS max_latency_sec, round(min(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 3) AS min_latency_sec FROM default.otel_traces GROUP BY model ORDER BY model",
+          "format": 1,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "fillOpacity": 70 },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "legend": { "displayMode": "list" }
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true
+}

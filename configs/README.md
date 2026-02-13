@@ -61,7 +61,7 @@ docker logs otel-collector -f
 docker exec -it clickhouse clickhouse-client
 
 # Then run:
-USE otel;
+USE default;
 SELECT count() FROM otel_traces;
 ```
 
@@ -70,9 +70,9 @@ SELECT count() FROM otel_traces;
 The OTLP Collector uses these environment variables (set in docker-compose.yaml):
 
 - `CLICKHOUSE_HOST=clickhouse` - ClickHouse service name
-- `CLICKHOUSE_DATABASE=otel` - Database name
-- `CLICKHOUSE_USERNAME=default` - Username
-- `CLICKHOUSE_PASSWORD=` - Password (empty for default user)
+- `CLICKHOUSE_DATABASE=default` - Database name
+- `CLICKHOUSE_USERNAME=otel` - Username
+- `CLICKHOUSE_PASSWORD=otelpass` - Password
 
 ## ClickHouse Access
 
@@ -98,7 +98,7 @@ docker exec -it clickhouse clickhouse-client
 
 **No traces in ClickHouse:**
 - Check collector logs: `docker logs otel-collector`
-- Verify tables exist: `SHOW TABLES FROM otel;`
+- Verify tables exist: `SHOW TABLES FROM default;`
 - Check if data is being received: Look for "Received" messages in collector logs
 
 **Tables not created:**
