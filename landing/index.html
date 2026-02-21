@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anchor — Your Ops, on Autopilot</title>
+    <meta name="description"
+        content="Anchor is the zero-code platform for workflow automation, observability, and agent ops — powering personal life, business, and enterprise at scale." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+    <!-- Ambient background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" id="nav-logo">
+                <svg class="logo-mark" width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <rect x="1" y="1" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.6" />
+                    <circle cx="11" cy="11" r="4" fill="currentColor" opacity="0.15" />
+                    <circle cx="11" cy="11" r="2" fill="currentColor" />
+                </svg>
+                <span>Anchor</span>
+            </a>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#workflow">Workflow</a></li>
+                <li><a href="#proof">Proof</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="#" class="nav-link-btn">Log in</a>
+                <a href="#cta" class="btn btn-primary">Get Started</a>
+            </div>
+            <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <line x1="3" y1="5" x2="17" y2="5" stroke="currentColor" stroke-width="1.4"
+                        stroke-linecap="round" />
+                    <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.4"
+                        stroke-linecap="round" />
+                    <line x1="3" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="#features">Features</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#proof">Proof</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#cta" class="btn btn-primary" style="margin-top:8px;text-align:center;">Get Started</a>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-inner">
+                <div class="hero-eyebrow">
+                    <span class="eyebrow-pill">Early Access</span>
+                </div>
+                <h1>Put your world on <em>autopilot.</em></h1>
+                <p class="hero-sub">
+                    Build workflows. Deploy agents. Monitor everything.<br />
+                    Anchor brings a zero-code experience — from personal life to enterprise.
+                </p>
+                <div class="hero-actions">
+                    <a href="#cta" class="btn btn-primary">Start building for free</a>
+                    <a href="#workflow" class="btn btn-ghost">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3" />
+                            <polygon points="6,4.5 10,7 6,9.5" fill="currentColor" />
+                        </svg>
+                        Watch demo
+                    </a>
+                </div>
+                <p class="hero-note">Free for individuals · No credit card · Scales to enterprise</p>
+            </div>
+        </div>
+
+        <!-- Hero visual — Palantir-inspired data grid -->
+        <div class="hero-visual">
+            <div class="visual-window">
+                <div class="window-chrome">
+                    <div class="chrome-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="chrome-tabs">
+                        <span class="tab active">Workflows</span>
+                        <span class="tab">Agents</span>
+                        <span class="tab">Observability</span>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="data-row header-row">
+                        <span class="cell cell-name">Workflow</span>
+                        <span class="cell">Runs (7d)</span>
+                        <span class="cell">Success</span>
+                        <span class="cell cell-status">Status</span>
+                    </div>
+                    <div class="data-row" data-delay="100">
+                        <span class="cell cell-name"><span class="dot dot-blue"></span>Lead → CRM + Slack</span>
+                        <span class="cell">1,842</span>
+                        <span class="cell trend-up">99.8%</span>
+                        <span class="cell cell-status"><span class="status-pill on-track">Active</span></span>
+                    </div>
+                    <div class="data-row" data-delay="200">
+                        <span class="cell cell-name"><span class="dot dot-teal"></span>Agent: Support Triage</span>
+                        <span class="cell">3,210</span>
+                        <span class="cell trend-up">99.6%</span>
+                        <span class="cell cell-status"><span class="status-pill on-track">Active</span></span>
+                    </div>
+                    <div class="data-row" data-delay="300">
+                        <span class="cell cell-name"><span class="dot dot-amber"></span>Infra Health Monitor</span>
+                        <span class="cell">8,491</span>
+                        <span class="cell trend-up">100%</span>
+                        <span class="cell cell-status"><span class="status-pill strong">Healthy</span></span>
+                    </div>
+                    <div class="data-row" data-delay="400">
+                        <span class="cell cell-name"><span class="dot dot-blue"></span>Invoice → Email</span>
+                        <span class="cell">316</span>
+                        <span class="cell trend-up">99.5%</span>
+                        <span class="cell cell-status"><span class="status-pill on-track">Active</span></span>
+                    </div>
+                    <div class="data-row" data-delay="500">
+                        <span class="cell cell-name"><span class="dot dot-teal"></span>Daily Backup + Report</span>
+                        <span class="cell">31</span>
+                        <span class="cell trend-up">100%</span>
+                        <span class="cell cell-status"><span class="status-pill on-track">Active</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Logos -->
+    <section class="logos-bar">
+        <div class="container">
+            <p class="logos-label">Powering ops from side projects to public companies</p>
+            <div class="logos-row">
+                <span class="logo-item">Stripe</span>
+                <span class="logo-item">Vercel</span>
+                <span class="logo-item">Linear</span>
+                <span class="logo-item">Notion</span>
+                <span class="logo-item">Arc</span>
+                <span class="logo-item">Loom</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-label">Capabilities</div>
+            <h2 class="section-title">Automate. Observe. Deploy agents.<br /><em>All without code.</em></h2>
+            <div class="features-grid">
+                <div class="feature-card" data-delay="0">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.3" />
+                            <line x1="2" y1="7" x2="18" y2="7" stroke="currentColor" stroke-width="1.3" />
+                            <line x1="7" y1="7" x2="7" y2="18" stroke="currentColor" stroke-width="1.3" />
+                        </svg>
+                    </div>
+                    <h3>Visual Workflow Builder</h3>
+                    <p>Drag, connect, ship. Build powerful automations on a canvas — from a morning routine to a billing
+                        pipeline.</p>
+                </div>
+                <div class="feature-card" data-delay="80">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.3" />
+                            <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <h3>Live Observability</h3>
+                    <p>Real-time dashboards for every workflow, agent, and system. See what's running, what's failing,
+                        and why — instantly.</p>
+                </div>
+                <div class="feature-card" data-delay="160">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M3 14l4-4 3 3 7-7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Agent Ops</h3>
+                    <p>Deploy autonomous AI agents that think, act, and learn. Plug in GPT, Claude, or custom models as
+                        first-class workflow citizens.</p>
+                </div>
+                <div class="feature-card" data-delay="0">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 2v16M2 10h16" stroke="currentColor" stroke-width="1.3"
+                                stroke-linecap="round" />
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.3" opacity="0.3" />
+                        </svg>
+                    </div>
+                    <h3>300+ Integrations</h3>
+                    <p>Slack, Stripe, Notion, Postgres, Google Calendar — connect your personal tools and enterprise
+                        stack alike.</p>
+                </div>
+                <div class="feature-card" data-delay="80">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 17s6-3.5 6-8V5l-6-2.5L4 5v4c0 4.5 6 8 6 8z" stroke="currentColor"
+                                stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Self-host or Cloud</h3>
+                    <p>Run on Anchor Cloud or deploy on your own infrastructure. Your data, your rules, zero lock-in.
+                    </p>
+                </div>
+                <div class="feature-card" data-delay="160">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 15v-2a4 4 0 014-4h0a4 4 0 014 4v2M14 7a3 3 0 013 3v2" stroke="currentColor"
+                                stroke-width="1.3" stroke-linecap="round" />
+                            <circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.3" />
+                        </svg>
+                    </div>
+                    <h3>Bulletproof Execution</h3>
+                    <p>Auto-retry, fallback branches, and detailed execution logs. When something goes sideways, you'll
+                        know why in seconds.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow -->
+    <section class="workflow" id="workflow">
+        <div class="container">
+            <div class="section-label">How it works</div>
+            <h2 class="section-title">Zero to <em>autopilot</em> in minutes.</h2>
+            <div class="workflow-steps">
+                <div class="wf-step" data-delay="0">
+                    <div class="wf-num">1</div>
+                    <div class="wf-body">
+                        <h3>Connect your world</h3>
+                        <p>Link your personal apps, business tools, or enterprise systems — one-click auth, zero config,
+                            instant sync.</p>
+                    </div>
+                </div>
+                <div class="wf-step" data-delay="120">
+                    <div class="wf-num">2</div>
+                    <div class="wf-body">
+                        <h3>Design your logic</h3>
+                        <p>Drop triggers, actions, conditions, and AI agents onto the canvas. Wire them together the way
+                            you think.</p>
+                    </div>
+                </div>
+                <div class="wf-step" data-delay="240">
+                    <div class="wf-num">3</div>
+                    <div class="wf-body">
+                        <h3>Let it run</h3>
+                        <p>Activate and walk away. Your automations and agents run 24/7 with full observability,
+                            retries, and live logs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Proof / Social proof -->
+    <section class="proof" id="proof">
+        <div class="container">
+            <div class="section-label">From the field</div>
+            <h2 class="section-title">People who ship, <em>love this.</em></h2>
+            <div class="proof-grid">
+                <blockquote class="proof-card">
+                    <p>"I automated my entire morning — emails, calendar, project updates — before breakfast. It just
+                        <em>works</em>."
+                    </p>
+                    <footer>
+                        <strong>Elena Torres</strong>
+                        <span>Indie maker</span>
+                    </footer>
+                </blockquote>
+                <blockquote class="proof-card featured">
+                    <p>"We replaced n8n, three cron jobs, and a monitoring stack. Anchor gave our ops team superpowers —
+                        without a single line of code."</p>
+                    <footer>
+                        <strong>James Okafor</strong>
+                        <span>VP Eng, Meridian</span>
+                    </footer>
+                </blockquote>
+                <blockquote class="proof-card">
+                    <p>"The observability alone is worth it. But then you add agents and suddenly your ops run
+                        themselves."</p>
+                    <footer>
+                        <strong>Priya Nair</strong>
+                        <span>CTO, Wavelet (Series B)</span>
+                    </footer>
+                </blockquote>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-label">Pricing</div>
+            <h2 class="section-title">Simple. <em>Honest.</em></h2>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <div class="price-name">Personal</div>
+                    <div class="price-amount"><span class="currency">$</span>0</div>
+                    <div class="price-period">Free forever</div>
+                    <ul class="price-features">
+                        <li>Unlimited personal workflows</li>
+                        <li>100+ integrations</li>
+                        <li>Basic observability</li>
+                        <li>Community support</li>
+                    </ul>
+                    <a href="#cta" class="btn btn-ghost btn-block">Get started</a>
+                </div>
+                <div class="price-card popular">
+                    <div class="popular-tag">Most popular</div>
+                    <div class="price-name">Pro</div>
+                    <div class="price-amount"><span class="currency">$</span>29<span class="price-unit">/mo</span></div>
+                    <div class="price-period">per seat, billed annually</div>
+                    <ul class="price-features">
+                        <li>Unlimited team members</li>
+                        <li>Unlimited workflows + agents</li>
+                        <li>Full observability suite</li>
+                        <li>AI agent nodes</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="#cta" class="btn btn-primary btn-block">Start free trial</a>
+                </div>
+                <div class="price-card">
+                    <div class="price-name">Enterprise</div>
+                    <div class="price-amount">Custom</div>
+                    <div class="price-period">Tailored to your scale</div>
+                    <ul class="price-features">
+                        <li>Everything in Pro</li>
+                        <li>SSO, SAML & audit logs</li>
+                        <li>Self-hosted deployment</li>
+                        <li>Dedicated support + SLA</li>
+                    </ul>
+                    <a href="#cta" class="btn btn-ghost btn-block">Contact sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="cta">
+        <div class="container">
+            <div class="cta-inner">
+                <h2>Put your ops on autopilot.</h2>
+                <p>Join 2,400+ people and teams who automate everything — from daily habits to enterprise pipelines.</p>
+                <form class="cta-form" id="cta-form">
+                    <input type="email" placeholder="you@company.com" required id="email-input" />
+                    <button type="submit" class="btn btn-primary">Get early access</button>
+                </form>
+                <span class="cta-fine">No credit card · Cancel anytime · Setup in 2 minutes</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="#" class="nav-logo">
+                        <svg class="logo-mark" width="20" height="20" viewBox="0 0 22 22" fill="none">
+                            <rect x="1" y="1" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.6" />
+                            <circle cx="11" cy="11" r="4" fill="currentColor" opacity="0.15" />
+                            <circle cx="11" cy="11" r="2" fill="currentColor" />
+                        </svg>
+                        <span>Anchor</span>
+                    </a>
+                    <p>Automate. Observe. Deploy agents.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <a href="#">Features</a>
+                    <a href="#">Pricing</a>
+                    <a href="#">Changelog</a>
+                    <a href="#">Integrations</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <a href="#">About</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Press</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="#">Docs</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Security</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 Anchor. All rights reserved.</span>
+                <div class="footer-social">
+                    <a href="#" aria-label="Twitter">𝕏</a>
+                    <a href="#" aria-label="GitHub">GH</a>
+                    <a href="#" aria-label="LinkedIn">in</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
