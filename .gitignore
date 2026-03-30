@@ -1,8 +1,25 @@
-venv/
-.DS_Store
-.vscode/
-node_modules/
+# Python
 __pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment
+venv/
 .env
 
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+
+# Legacy
+node_modules/
 designdocs/

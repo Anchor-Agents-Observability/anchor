@@ -1,5 +1,5 @@
 """
-OpenTelemetry context propagators configuration for Anchor SDK.
+W3C context propagation setup (Trace Context + Baggage).
 """
 
 from opentelemetry.propagate import set_global_textmap
@@ -9,17 +9,9 @@ from opentelemetry.baggage.propagation import W3CBaggagePropagator
 
 
 def setup_propagators():
-    """
-    Set up OpenTelemetry context propagators.
-    
-    Configures composite propagator with:
-    - W3C Trace Context (for distributed tracing)
-    - W3C Baggage (for context propagation)
-    """
-    propagator = CompositePropagator([
+    """Install W3C Trace Context + Baggage as the global propagator."""
+    set_global_textmap(CompositePropagator([
         TraceContextTextMapPropagator(),
         W3CBaggagePropagator(),
-    ])
-    
-    set_global_textmap(propagator)
+    ]))
 

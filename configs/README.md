@@ -4,6 +4,7 @@
 
 - `otel-collector-config.yaml` - OTLP Collector configuration
 - `clickhouse-config.xml` - ClickHouse server configuration
+- `grafana/` - Grafana provisioning (datasources + dashboards)
 
 ## Quick Start
 
@@ -17,98 +18,68 @@ docker-compose up -d
 
 **Check ClickHouse:**
 ```bash
-# Test HTTP interface
 curl http://localhost:8123/ping
 # Should return: Ok.
-
-# Or check logs
-docker logs clickhouse
 ```
 
 **Check OTLP Collector:**
 ```bash
-# Check health endpoint
 curl http://localhost:13133
-# Or check logs
-docker logs otel-collector
 ```
 
 ### 3. Configure Your SDK
 
-Point your SDK to the collector:
+Point your SDK to the collector. Use the **base URL only** — the OTLP HTTP exporter
+appends `/v1/traces` automatically:
 
 ```python
 import anchor
 
 anchor.init(
     application_name="my-app",
-    otlp_endpoint="http://localhost:4318/v1/traces"  # HTTP
-    # or
-    # otlp_endpoint="http://localhost:4317"  # gRPC
+    otlp_endpoint="http://localhost:4318"  # base URL, no /v1/traces
 )
+```
+
+For gRPC, set the environment variable:
+```bash
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+```
+Then use port 4317:
+```python
+anchor.init(otlp_endpoint="http://localhost:4317")
 ```
 
 ### 4. Verify Data Flow
 
-**Check if traces are being received:**
 ```bash
+# Watch collector logs
 docker logs otel-collector -f
-```
 
-**Query ClickHouse to see traces:**
-```bash
-# Connect to ClickHouse
+# Query ClickHouse
 docker exec -it clickhouse clickhouse-client
-
-# Then run:
-USE default;
-SELECT count() FROM otel_traces;
+# USE default; SELECT count() FROM otel_traces;
 ```
 
 ## Environment Variables
 
-The OTLP Collector uses these environment variables (set in docker-compose.yaml):
+The OTLP Collector uses these (set in docker-compose.yaml):
 
-- `CLICKHOUSE_HOST=clickhouse` - ClickHouse service name
-- `CLICKHOUSE_DATABASE=default` - Database name
-- `CLICKHOUSE_USERNAME=otel` - Username
-- `CLICKHOUSE_PASSWORD=otelpass` - Password
-
-## ClickHouse Access
-
-**HTTP Interface:**
-- URL: `http://localhost:8123`
-- Use for SQL queries via HTTP
-
-**Native Protocol:**
-- Port: `9000`
-- Used by OTLP Collector
-
-**Command Line Client:**
-```bash
-docker exec -it clickhouse clickhouse-client
-```
+- `CLICKHOUSE_HOST=clickhouse`
+- `CLICKHOUSE_DATABASE=default`
+- `CLICKHOUSE_USERNAME=otel`
+- `CLICKHOUSE_PASSWORD=otelpass`
 
 ## Troubleshooting
 
 **Collector can't connect to ClickHouse:**
 - Check ClickHouse is healthy: `docker ps | grep clickhouse`
 - Check logs: `docker logs clickhouse`
-- Verify environment variables match
 
 **No traces in ClickHouse:**
 - Check collector logs: `docker logs otel-collector`
 - Verify tables exist: `SHOW TABLES FROM default;`
-- Check if data is being received: Look for "Received" messages in collector logs
 
 **Tables not created:**
-- The OTLP exporter should auto-create tables
-- If not, check ClickHouse logs for errors
-- You can manually create tables if needed
-
-## Next Steps
-
-1. ✅ Services are running
-2. ✅ SDK is configured
-3. ✅ Make some API calls
-4. ✅ Query ClickHouse to see your traces!
+- The OTLP exporter auto-creates tables on first write
+- Check ClickHouse logs for errors

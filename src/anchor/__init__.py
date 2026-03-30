@@ -1,14 +1,24 @@
 """
 Anchor SDK - Zero-code observability for LLM applications.
+
+Usage:
+    import anchor
+    anchor.init(otlp_endpoint="http://localhost:4318")
+
+    # Your LLM calls are now automatically instrumented.
+    from openai import OpenAI
+    client = OpenAI()
+    client.chat.completions.create(model="gpt-4o", messages=[...])
 """
 
 from typing import Optional
 from opentelemetry import trace as trace_api
-from opentelemetry.trace import SpanKind, Span, StatusCode, Status
 
 from anchor.otel.tracer import setup_tracing
 from anchor.otel.propagators import setup_propagators
 from anchor.instrument_mapper import get_instrumentor
+
+__version__ = "0.1.0"
 
 
 def init(
@@ -18,13 +28,27 @@ def init(
     otlp_headers: Optional[dict] = None,
     instrumentations: Optional[list[str]] = None,
     disable_batch: bool = False,
+    capture_message_content: bool = True,
     **kwargs,
 ) -> Optional[trace_api.Tracer]:
     """
     Initialize Anchor SDK with tracing and instrumentations.
+
+    Args:
+        application_name: Name of your application (appears in traces).
+        environment: Deployment environment (e.g. "production", "staging").
+        otlp_endpoint: OTLP collector base URL (e.g. "http://localhost:4318").
+                       The SDK appends /v1/traces automatically.
+        otlp_headers: Optional headers dict for authenticated OTLP endpoints.
+        instrumentations: List of providers to instrument. Defaults to ["openai"].
+                         Available: "openai", "anthropic".
+        disable_batch: Use SimpleSpanProcessor instead of BatchSpanProcessor.
+        capture_message_content: Whether to capture prompt/response content in spans.
+
+    Returns:
+        Configured OpenTelemetry tracer, or None if setup fails.
     """
-    
-    # Set up OpenTelemetry tracing
+
     tracer = setup_tracing(
         application_name=application_name,
         environment=environment,
@@ -32,29 +56,28 @@ def init(
         otlp_headers=otlp_headers,
         disable_batch=disable_batch,
     )
-    
+
     if tracer is None:
         return None
-    
-    # Set up context propagators for distributed tracing
+
     setup_propagators()
-    
-    # Instrument specified libraries
+
     if instrumentations is None:
-        instrumentations = ["openai"]  # Default to OpenAI
-    
-    for instrumentation_name in instrumentations:
+        instrumentations = ["openai"]
+
+    for name in instrumentations:
         try:
-            InstrumentorClass = get_instrumentor(instrumentation_name)
+            InstrumentorClass = get_instrumentor(name)
             instrumentor = InstrumentorClass(
                 tracer=tracer,
                 environment=environment,
                 application_name=application_name,
+                capture_message_content=capture_message_content,
             )
             instrumentor.instrument()
+        except ImportError:
+            pass
         except Exception as e:
-            # Log error but continue with other instrumentations
-            print(f"Warning: Failed to instrument {instrumentation_name}: {e}")
-    
-    return tracer
+            print(f"Warning: Failed to instrument {name}: {e}")
 
+    return tracer

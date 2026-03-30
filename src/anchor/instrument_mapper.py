@@ -1,26 +1,37 @@
+"""
+Registry that maps provider names (e.g. "openai") to their instrumentor classes.
+
+To add a new provider, add entries to both maps and create the corresponding
+module under anchor/instrumentation/<provider>/.
+"""
+
 import importlib
 
+# provider name → pip package name (for error messages)
 MODULE_MAP = {
     "openai": "openai",
+    "anthropic": "anthropic",
 }
 
+# provider name → fully qualified instrumentor class path
 INSTRUMENT_MAP = {
-    "openai": "instrumentation.openai.openaiInstrumentor",
+    "openai": "anchor.instrumentation.openai.openaiInstrumentor",
+    "anthropic": "anchor.instrumentation.anthropic.anthropicInstrumentor",
 }
+
 
 def get_instrumentor(name):
-    """
-    Get the instrumentor collections for the given module.
-    """
+    """Get the instrumentor class for the given module name."""
     if name not in INSTRUMENT_MAP:
-        raise ValueError(f"Instrumentor {name} not found.")
-    
-    path, instrName = INSTRUMENT_MAP[name].rsplit('.', 1)
+        raise ValueError(f"Instrumentor '{name}' not found. Available: {list(INSTRUMENT_MAP.keys())}")
+
+    path, instr_name = INSTRUMENT_MAP[name].rsplit(".", 1)
 
     try:
         module = importlib.import_module(path)
-        # returns instance of the instrumentor class
-        return getattr(module, instrName)
+        return getattr(module, instr_name)
     except ImportError:
-        raise ImportError(f"Instrumentor {name} not found.")
-
+        raise ImportError(
+            f"Could not import instrumentor for '{name}'. "
+            f"Make sure the provider package is installed: pip install anchor-sdk[{name}]"
+        )

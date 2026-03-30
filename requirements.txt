@@ -9,8 +9,9 @@ opentelemetry-instrumentation>=0.41b0
 # Monkey-patching
 wrapt>=1.14.0
 
-# Supported LLM providers
+# Supported LLM providers (optional)
 openai>=1.0.0
+anthropic>=0.18.0
 
-# Utilities (optional, for loading .env files)
+# Utilities
 python-dotenv>=1.0.0

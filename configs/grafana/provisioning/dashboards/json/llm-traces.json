@@ -14,7 +14,7 @@
       "title": "Total API Calls",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT count() AS total FROM default.otel_traces",
@@ -43,7 +43,7 @@
       "title": "Total Input Tokens",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens'])) AS input_tokens FROM default.otel_traces",
@@ -70,7 +70,7 @@
       "title": "Total Output Tokens",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])) AS output_tokens FROM default.otel_traces",
@@ -97,7 +97,7 @@
       "title": "Avg Latency (sec)",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT round(avg(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 2) AS avg_duration FROM default.otel_traces",
@@ -127,7 +127,7 @@
       "title": "Error Rate",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT round(countIf(StatusCode = 'Error') / count() * 100, 1) AS error_pct FROM default.otel_traces",
@@ -157,7 +157,7 @@
       "title": "Models Used",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT count(DISTINCT SpanAttributes['gen_ai.response.model']) AS models FROM default.otel_traces",
@@ -184,7 +184,7 @@
       "title": "API Calls Over Time",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT toStartOfMinute(Timestamp) AS time, count() AS calls FROM default.otel_traces GROUP BY time ORDER BY time",
@@ -213,7 +213,7 @@
       "title": "Latency Over Time (seconds)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT Timestamp AS time, toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration']) AS latency_sec, SpanAttributes['gen_ai.request.model'] AS model FROM default.otel_traces ORDER BY time",
@@ -242,7 +242,7 @@
       "title": "Token Usage Over Time",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT Timestamp AS time, toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens']) AS input_tokens, toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens']) AS output_tokens FROM default.otel_traces ORDER BY time",
@@ -270,7 +270,7 @@
       "title": "Calls by Model",
       "type": "piechart",
       "gridPos": { "h": 8, "w": 6, "x": 12, "y": 12 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT SpanAttributes['gen_ai.response.model'] AS model, count() AS calls FROM default.otel_traces GROUP BY model ORDER BY calls DESC",
@@ -289,7 +289,7 @@
       "title": "Calls by Finish Reason",
       "type": "piechart",
       "gridPos": { "h": 8, "w": 6, "x": 18, "y": 12 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT SpanAttributes['gen_ai.response.finish_reasons'] AS reason, count() AS calls FROM default.otel_traces GROUP BY reason ORDER BY calls DESC",
@@ -308,7 +308,7 @@
       "title": "Request & Response Log",
       "type": "table",
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT Timestamp, SpanAttributes['gen_ai.request.model'] AS model, SpanAttributes['gen_ai.user.message.0'] AS user_request, SpanAttributes['gen_ai.assistant.message.0'] AS ai_response, toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens']) AS input_tokens, toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens']) AS output_tokens, round(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration']), 2) AS latency_sec, SpanAttributes['gen_ai.response.finish_reasons'] AS finish_reason, StatusCode FROM default.otel_traces ORDER BY Timestamp DESC",
@@ -338,7 +338,7 @@
       "title": "Avg Tokens per Request by Model",
       "type": "barchart",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT SpanAttributes['gen_ai.response.model'] AS model, round(avg(toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens'])), 0) AS avg_input_tokens, round(avg(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])), 0) AS avg_output_tokens FROM default.otel_traces GROUP BY model ORDER BY model",
@@ -363,7 +363,7 @@
       "title": "Avg Latency by Model (sec)",
       "type": "barchart",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 30 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "" },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
       "targets": [
         {
           "rawSql": "SELECT SpanAttributes['gen_ai.response.model'] AS model, round(avg(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 3) AS avg_latency_sec, round(max(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 3) AS max_latency_sec, round(min(toFloat64OrZero(SpanAttributes['gen_ai.client.operation.duration'])), 3) AS min_latency_sec FROM default.otel_traces GROUP BY model ORDER BY model",

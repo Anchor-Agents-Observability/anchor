@@ -9,7 +9,7 @@ class SemanticConventions:
     It provides a set of standard names and values for various data points.
     """
 
-    SEVER_PORT = "server.port"
+    SERVER_PORT = "server.port"
     SERVER_ADDRESS = "server.address"
     CLIENT_PORT = "client.port"
     CLIENT_ADDRESS = "client.address"
