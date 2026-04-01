@@ -1,4 +1,43 @@
 services:
+  # Redis - API key cache and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Go API Gateway - authenticates SDK traffic, injects tenant_id, forwards to collector
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - GATEWAY_PORT=8080
+      - COLLECTOR_ADDR=http://otel-collector:4318
+      - REDIS_ADDR=redis:6379
+      - DEFAULT_RATE_LIMIT=10000
+    depends_on:
+      redis:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ClickHouse - stores traces, logs, and metrics
   clickhouse:
     image: clickhouse/clickhouse-server:latest
@@ -24,17 +63,16 @@ services:
       timeout: 5s
       retries: 5
 
-  # OTLP Collector - receives traces and forwards to ClickHouse
-  # Using contrib image which includes ClickHouse exporter
+  # OTLP Collector - internal only, receives from gateway and forwards to ClickHouse
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
       - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
+    expose:
+      - "4317"
+      - "4318"
     environment:
       - CLICKHOUSE_HOST=clickhouse
       - CLICKHOUSE_DATABASE=default
@@ -54,7 +92,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3000:3000"   # Grafana web interface
+      - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -78,6 +116,8 @@ volumes:
   clickhouse_logs:
     driver: local
   grafana_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:
