@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id         String      @id @default(uuid())
+  name       String
+  slug       String      @unique
+  clerkOrgId String?     @unique @map("clerk_org_id")
+  tenantId   String      @unique @map("tenant_id")
+  tier       String      @default("free")
+  rateLimit  Int         @default(10000) @map("rate_limit")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  members    OrgMember[]
+  apiKeys    ApiKey[]
+
+  @@map("organizations")
+}
+
+model OrgMember {
+  id          String       @id @default(uuid())
+  orgId       String       @map("org_id")
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  clerkUserId String       @map("clerk_user_id")
+  role        String       @default("member")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  @@unique([orgId, clerkUserId])
+  @@map("org_members")
+}
+
+model ApiKey {
+  id         String       @id @default(uuid())
+  orgId      String       @map("org_id")
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name       String
+  keyPrefix  String       @map("key_prefix")
+  keyHash    String       @unique @map("key_hash")
+  active     Boolean      @default(true)
+  lastUsedAt DateTime?    @map("last_used_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  @@map("api_keys")
+}

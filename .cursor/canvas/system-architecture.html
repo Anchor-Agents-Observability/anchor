@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anchor SDK — System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --border: #2a3654;
+    --accent: #22d3ee;
+    --accent2: #a78bfa;
+    --accent3: #f472b6;
+    --accent4: #34d399;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --orange: #fb923c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 40px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .diagram {
+    position: relative;
+    width: 100%;
+    min-height: 600px;
+  }
+
+  .node {
+    position: absolute;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    transition: all 0.3s ease;
+    cursor: default;
+    z-index: 2;
+  }
+
+  .node:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.12);
+  }
+
+  .node-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .node-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .node-tech {
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .tag-go { background: rgba(34, 211, 238, 0.15); color: var(--accent); }
+  .tag-python { background: rgba(167, 139, 250, 0.15); color: var(--accent2); }
+  .tag-redis { background: rgba(244, 114, 182, 0.15); color: var(--accent3); }
+  .tag-otel { background: rgba(52, 211, 153, 0.15); color: var(--accent4); }
+  .tag-db { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
+  .tag-aws { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
+  .tag-grafana { background: rgba(244, 114, 182, 0.15); color: var(--accent3); }
+
+  .zone {
+    position: absolute;
+    border: 1.5px dashed;
+    border-radius: 16px;
+    z-index: 1;
+  }
+
+  .zone-label {
+    position: absolute;
+    top: -11px;
+    left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .zone-user {
+    border-color: rgba(167, 139, 250, 0.3);
+    background: rgba(167, 139, 250, 0.03);
+  }
+  .zone-user .zone-label { background: rgba(167, 139, 250, 0.2); color: var(--accent2); }
+
+  .zone-public {
+    border-color: rgba(34, 211, 238, 0.3);
+    background: rgba(34, 211, 238, 0.03);
+  }
+  .zone-public .zone-label { background: rgba(34, 211, 238, 0.2); color: var(--accent); }
+
+  .zone-internal {
+    border-color: rgba(52, 211, 153, 0.3);
+    background: rgba(52, 211, 153, 0.03);
+  }
+  .zone-internal .zone-label { background: rgba(52, 211, 153, 0.2); color: var(--accent4); }
+
+  .zone-storage {
+    border-color: rgba(251, 146, 60, 0.3);
+    background: rgba(251, 146, 60, 0.03);
+  }
+  .zone-storage .zone-label { background: rgba(251, 146, 60, 0.2); color: var(--orange); }
+
+  svg.arrows {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .arrow-line {
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 6, 4;
+    animation: dash 20s linear infinite;
+  }
+
+  .arrow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    fill: var(--text-dim);
+  }
+
+  @keyframes dash {
+    to { stroke-dashoffset: -200; }
+  }
+
+  .legend {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .legend-card h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .legend-card p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .flow-section {
+    margin-top: 40px;
+  }
+
+  .flow-section h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: var(--accent);
+  }
+
+  .flow-steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-card::after {
+    content: '→';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .flow-card:last-child::after { content: ''; }
+
+  .flow-card .flow-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .flow-card .flow-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .flow-card .flow-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .c1 { color: var(--accent2); }
+  .c2 { color: var(--accent); }
+  .c3 { color: var(--accent3); }
+  .c4 { color: var(--accent4); }
+  .c5 { color: var(--orange); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>anchor system architecture</h1>
+  <p class="subtitle">SDK → Gateway → Collector → ClickHouse // current state</p>
+
+  <div class="diagram" style="height: 520px;">
+
+    <!-- Zones -->
+    <div class="zone zone-user" style="left:0; top:0; width:180px; height:500px;">
+      <span class="zone-label">USER APP</span>
+    </div>
+    <div class="zone zone-public" style="left:210px; top:0; width:260px; height:500px;">
+      <span class="zone-label">PUBLIC EDGE</span>
+    </div>
+    <div class="zone zone-internal" style="left:500px; top:0; width:260px; height:500px;">
+      <span class="zone-label">INTERNAL</span>
+    </div>
+    <div class="zone zone-storage" style="left:790px; top:0; width:230px; height:500px;">
+      <span class="zone-label">STORAGE</span>
+    </div>
+
+    <!-- Nodes -->
+    <div class="node" style="left:20px; top:60px; width:140px;">
+      <div class="node-label c1">Python App</div>
+      <div class="node-desc">Your LLM app using OpenAI, Anthropic, etc.</div>
+      <div class="node-tech"><span class="tag tag-python">Python</span></div>
+    </div>
+
+    <div class="node" style="left:20px; top:220px; width:140px;">
+      <div class="node-label c1">anchor SDK</div>
+      <div class="node-desc">anchor.init() wraps LLM clients via wrapt</div>
+      <div class="node-tech">
+        <span class="tag tag-python">pip</span>
+        <span class="tag tag-otel">OTel</span>
+      </div>
+    </div>
+
+    <div class="node" style="left:240px; top:60px; width:200px;">
+      <div class="node-label c2">ALB</div>
+      <div class="node-desc">TLS termination, routes /v1/* to gateway</div>
+      <div class="node-tech"><span class="tag tag-aws">AWS ALB</span></div>
+    </div>
+
+    <div class="node" style="left:240px; top:200px; width:200px;">
+      <div class="node-label c2">Go Gateway</div>
+      <div class="node-desc">Auth, rate limit, inject tenant_id into OTLP payload</div>
+      <div class="node-tech">
+        <span class="tag tag-go">Go/Chi</span>
+        <span class="tag tag-aws">Fargate</span>
+      </div>
+    </div>
+
+    <div class="node" style="left:240px; top:370px; width:200px;">
+      <div class="node-label c3">Redis</div>
+      <div class="node-desc">API key cache, rate limit counters</div>
+      <div class="node-tech">
+        <span class="tag tag-redis">Redis 7</span>
+        <span class="tag tag-aws">Fargate+EFS</span>
+      </div>
+    </div>
+
+    <div class="node" style="left:530px; top:200px; width:200px;">
+      <div class="node-label c4">OTel Collector</div>
+      <div class="node-desc">Batch, memory limit, export to ClickHouse</div>
+      <div class="node-tech">
+        <span class="tag tag-otel">OTel Contrib</span>
+        <span class="tag tag-aws">Fargate</span>
+      </div>
+    </div>
+
+    <div class="node" style="left:820px; top:60px; width:180px;">
+      <div class="node-label c5">ClickHouse</div>
+      <div class="node-desc">Traces, metrics, logs storage with tenant_id column</div>
+      <div class="node-tech">
+        <span class="tag tag-db">ClickHouse</span>
+        <span class="tag tag-aws">EC2+EBS</span>
+      </div>
+    </div>
+
+    <div class="node" style="left:820px; top:220px; width:180px;">
+      <div class="node-label c5">Grafana</div>
+      <div class="node-desc">Dashboards for traces, tokens, latency, cost</div>
+      <div class="node-tech">
+        <span class="tag tag-grafana">Grafana</span>
+      </div>
+    </div>
+
+    <div class="node" style="left:530px; top:370px; width:200px;">
+      <div class="node-label" style="color:var(--text-dim);">Service Discovery</div>
+      <div class="node-desc">Internal DNS: redis.anchor.local, collector.anchor.local, clickhouse.anchor.local</div>
+      <div class="node-tech"><span class="tag tag-aws">Route53 Private</span></div>
+    </div>
+
+    <!-- SVG arrows -->
+    <svg class="arrows" viewBox="0 0 1100 520" preserveAspectRatio="xMidYMid meet">
+      <!-- SDK to ALB -->
+      <path d="M 90 260 L 90 110 L 240 110" class="arrow-line" stroke="var(--accent2)" marker-end="url(#arr-purple)"/>
+      <text x="130" y="100" class="arrow-label">OTLP + Bearer token</text>
+
+      <!-- ALB to Gateway -->
+      <path d="M 340 140 L 340 200" class="arrow-line" stroke="var(--accent)"/>
+
+      <!-- Gateway to Redis (validate) -->
+      <path d="M 340 290 L 340 370" class="arrow-line" stroke="var(--accent3)"/>
+      <text x="350" y="340" class="arrow-label">validate key</text>
+
+      <!-- Gateway to Collector -->
+      <path d="M 440 250 L 530 250" class="arrow-line" stroke="var(--accent4)"/>
+      <text x="450" y="240" class="arrow-label">OTLP + tenant_id</text>
+
+      <!-- Collector to ClickHouse -->
+      <path d="M 730 250 L 780 250 L 780 110 L 820 110" class="arrow-line" stroke="var(--orange)"/>
+      <text x="760" y="95" class="arrow-label">batch insert</text>
+
+      <!-- ClickHouse to Grafana -->
+      <path d="M 910 150 L 910 220" class="arrow-line" stroke="var(--orange)" stroke-dasharray="4,4"/>
+      <text x="918" y="190" class="arrow-label">query</text>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arr-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--accent2)"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Request flow -->
+  <div class="flow-section">
+    <h2>request flow</h2>
+    <div class="flow-steps">
+      <div class="flow-card">
+        <div class="flow-num c1">1</div>
+        <div class="flow-title">SDK</div>
+        <div class="flow-desc">anchor.init() patches LLM clients. Each call creates an OTel span.</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num c2">2</div>
+        <div class="flow-title">Gateway</div>
+        <div class="flow-desc">Validates API key via Redis. Checks rate limit. Injects tenant_id.</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num c3">3</div>
+        <div class="flow-title">Collector</div>
+        <div class="flow-desc">Batches spans. Applies memory limits. Exports to ClickHouse.</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num c5">4</div>
+        <div class="flow-title">ClickHouse</div>
+        <div class="flow-desc">Stores traces with tenant_id, tokens, cost, model info.</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num c4">5</div>
+        <div class="flow-title">Grafana</div>
+        <div class="flow-desc">Queries ClickHouse. Shows traces, latency, tokens, cost dashboards.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-card">
+      <h3 style="color:var(--accent2);">src/anchor/</h3>
+      <p>Python SDK core. init(), OTel tracer setup, wrapt-based instrumentation for OpenAI &amp; Anthropic. Published as anchor-sdk on PyPI.</p>
+    </div>
+    <div class="legend-card">
+      <h3 style="color:var(--accent);">gateway/</h3>
+      <p>Go API gateway (Chi). Auth middleware, Redis key lookup (SHA-256 hashed), sliding-window rate limiter, OTLP protobuf parsing + tenant_id injection.</p>
+    </div>
+    <div class="legend-card">
+      <h3 style="color:var(--accent4);">configs/</h3>
+      <p>OTel Collector config (OTLP receivers → ClickHouse exporter), ClickHouse server config, Grafana datasource + dashboard provisioning.</p>
+    </div>
+    <div class="legend-card">
+      <h3 style="color:var(--orange);">infra/</h3>
+      <p>Terraform HCL for AWS. VPC, ECS cluster, Fargate services (gateway, redis, collector), EC2-backed ClickHouse with EBS, ALB with TLS, auto-scaling.</p>
+    </div>
+  </div>
+
+  <div class="flow-section" style="margin-top:32px;">
+    <h2>key files</h2>
+    <div class="legend" style="margin-top:12px;">
+      <div class="legend-card">
+        <h3 style="color:var(--text-dim);">Entrypoints</h3>
+        <div class="step"><span class="step-num" style="background:rgba(167,139,250,0.2);color:var(--accent2);">1</span>src/anchor/__init__.py → anchor.init()</div>
+        <div class="step"><span class="step-num" style="background:rgba(34,211,238,0.2);color:var(--accent);">2</span>gateway/cmd/gateway/main.go → HTTP server</div>
+        <div class="step"><span class="step-num" style="background:rgba(34,211,238,0.2);color:var(--accent);">3</span>gateway/cmd/seed/main.go → API key generator</div>
+      </div>
+      <div class="legend-card">
+        <h3 style="color:var(--text-dim);">Infra</h3>
+        <div class="step"><span class="step-num" style="background:rgba(251,146,60,0.2);color:var(--orange);">4</span>docker-compose.yaml → local dev stack</div>
+        <div class="step"><span class="step-num" style="background:rgba(251,146,60,0.2);color:var(--orange);">5</span>infra/*.tf → AWS production infra</div>
+        <div class="step"><span class="step-num" style="background:rgba(52,211,153,0.2);color:var(--accent4);">6</span>configs/ → Collector, CH, Grafana configs</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -87,6 +87,52 @@ services:
       timeout: 5s
       retries: 5
 
+  # Postgres - dashboard orgs, members, API keys (Prisma)
+  postgres:
+    image: postgres:16-alpine
+    container_name: anchor-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: anchor
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d anchor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Anchor Dashboard - Next.js web UI
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: dashboard
+    ports:
+      - "3001:3001"
+    environment:
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:-}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
+      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+      - NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/overview
+      - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/overview
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/anchor}
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_USER=otel
+      - CLICKHOUSE_PASSWORD=otelpass
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+
   # Grafana - visualization and dashboards for traces stored in ClickHouse
   grafana:
     image: grafana/grafana:latest
@@ -118,6 +164,8 @@ volumes:
   grafana_data:
     driver: local
   redis_data:
+    driver: local
+  postgres_data:
     driver: local
 
 networks:
