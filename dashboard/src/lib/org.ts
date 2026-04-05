@@ -2,6 +2,10 @@ import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 
+function hasTenantId(tenantId: string | null | undefined): tenantId is string {
+  return typeof tenantId === "string" && tenantId.trim().length > 0;
+}
+
 export async function getOrCreateOrg() {
   const user = await currentUser();
   if (!user) return null;
@@ -11,7 +15,9 @@ export async function getOrCreateOrg() {
     include: { org: true },
   });
 
-  if (existing) return existing.org;
+  if (existing) {
+    return hasTenantId(existing.org.tenantId) ? existing.org : null;
+  }
 
   const slug = (
     user.emailAddresses[0]?.emailAddress?.split("@")[0] ||
@@ -35,5 +41,13 @@ export async function getOrCreateOrg() {
     },
   });
 
-  return org;
+  return hasTenantId(org.tenantId) ? org : null;
+}
+
+export function requireTenantId(tenantId: string | null | undefined): string {
+  if (!hasTenantId(tenantId)) {
+    throw new Error("Tenant context unavailable");
+  }
+
+  return tenantId;
 }

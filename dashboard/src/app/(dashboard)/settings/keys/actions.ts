@@ -3,12 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { syncKeyToRedis } from "@/lib/redis";
 import { generateApiKey } from "@/lib/api-keys";
-import { getOrCreateOrg } from "@/lib/org";
+import { getOrCreateOrg, requireTenantId } from "@/lib/org";
 import { revalidatePath } from "next/cache";
 
 export async function createApiKey(name: string) {
   const org = await getOrCreateOrg();
-  if (!org) throw new Error("Not authenticated");
+  if (!org) throw new Error("Tenant context unavailable");
+  const tenantId = requireTenantId(org.tenantId);
 
   const { plain, hash, prefix } = generateApiKey();
 
@@ -21,7 +22,7 @@ export async function createApiKey(name: string) {
     },
   });
 
-  await syncKeyToRedis(hash, org.tenantId, org.rateLimit, org.tier, true);
+  await syncKeyToRedis(hash, tenantId, org.rateLimit, org.tier, true);
 
   revalidatePath("/settings/keys");
   return { plain };
@@ -29,7 +30,8 @@ export async function createApiKey(name: string) {
 
 export async function revokeApiKey(keyId: string) {
   const org = await getOrCreateOrg();
-  if (!org) throw new Error("Not authenticated");
+  if (!org) throw new Error("Tenant context unavailable");
+  const tenantId = requireTenantId(org.tenantId);
 
   const key = await prisma.apiKey.findFirst({
     where: { id: keyId, orgId: org.id },
@@ -41,7 +43,7 @@ export async function revokeApiKey(keyId: string) {
     data: { active: false },
   });
 
-  await syncKeyToRedis(key.keyHash, org.tenantId, org.rateLimit, org.tier, false);
+  await syncKeyToRedis(key.keyHash, tenantId, org.rateLimit, org.tier, false);
 
   revalidatePath("/settings/keys");
 }
