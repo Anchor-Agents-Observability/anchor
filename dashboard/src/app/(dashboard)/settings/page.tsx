@@ -1,8 +1,11 @@
 import { getOrCreateOrg } from "@/lib/org";
+import { TenantContextFallback } from "@/components/tenant-context-fallback";
 
 export default async function SettingsPage() {
   const org = await getOrCreateOrg();
-  if (!org) return null;
+  if (!org?.tenantId) {
+    return <TenantContextFallback />;
+  }
 
   return (
     <div className="space-y-8">

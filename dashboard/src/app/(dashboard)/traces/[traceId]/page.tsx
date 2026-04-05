@@ -1,5 +1,6 @@
 import { getOrCreateOrg } from "@/lib/org";
 import { getTraceDetail } from "@/lib/queries/traces";
+import { TenantContextFallback } from "@/components/tenant-context-fallback";
 import { formatLatency } from "@/lib/utils";
 
 export default async function TraceDetailPage({
@@ -8,7 +9,9 @@ export default async function TraceDetailPage({
   params: Promise<{ traceId: string }>;
 }) {
   const org = await getOrCreateOrg();
-  if (!org) return null;
+  if (!org?.tenantId) {
+    return <TenantContextFallback />;
+  }
 
   const { traceId } = await params;
   const spans = await getTraceDetail(org.tenantId, traceId);

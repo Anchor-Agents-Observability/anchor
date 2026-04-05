@@ -1,10 +1,13 @@
 import { getOrCreateOrg } from "@/lib/org";
 import { getCostOverTime, getCostByModelDetailed } from "@/lib/queries/costs";
+import { TenantContextFallback } from "@/components/tenant-context-fallback";
 import { CostsClient } from "./client";
 
 export default async function CostsPage() {
   const org = await getOrCreateOrg();
-  if (!org) return null;
+  if (!org?.tenantId) {
+    return <TenantContextFallback />;
+  }
 
   const [costOverTime, costByModel] = await Promise.all([
     getCostOverTime(org.tenantId, 30),

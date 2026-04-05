@@ -1,6 +1,14 @@
+import { auth } from "@clerk/nextjs/server";
 import { SignUp } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
-export default function SignUpPage() {
+export default async function SignUpPage() {
+  const { userId } = await auth();
+
+  if (userId) {
+    redirect("/overview");
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center">
       <SignUp />
