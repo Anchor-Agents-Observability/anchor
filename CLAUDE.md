@@ -36,7 +36,7 @@ Anchor SDK is a zero-code observability library for LLM applications. It auto-in
 - `src/tests/` — Unit tests (mocked) and integration tests
 - `configs/` — Docker service configs (OTel Collector, ClickHouse, Grafana provisioning)
 
-## Development Commands
+## Build & Validation Commands
 
 ```bash
 # Install in dev mode
