@@ -1,8 +1,10 @@
 "use server";
 
 import { clickhouse } from "@/lib/clickhouse";
+import { requireTenantId } from "@/lib/org";
 
 export async function getOverviewMetrics(tenantId: string) {
+  const resolvedTenantId = requireTenantId(tenantId);
   const result = await clickhouse.query({
     query: `
       SELECT
@@ -14,7 +16,7 @@ export async function getOverviewMetrics(tenantId: string) {
       WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
         AND Timestamp >= now() - INTERVAL 24 HOUR
     `,
-    query_params: { tenantId },
+    query_params: { tenantId: resolvedTenantId },
     format: "JSONEachRow",
   });
   const rows = await result.json<{
@@ -33,6 +35,7 @@ export async function getOverviewMetrics(tenantId: string) {
 }
 
 export async function getSpansOverTime(tenantId: string, days: number = 7) {
+  const resolvedTenantId = requireTenantId(tenantId);
   const result = await clickhouse.query({
     query: `
       SELECT
@@ -44,13 +47,14 @@ export async function getSpansOverTime(tenantId: string, days: number = 7) {
       GROUP BY date
       ORDER BY date
     `,
-    query_params: { tenantId, days },
+    query_params: { tenantId: resolvedTenantId, days },
     format: "JSONEachRow",
   });
   return result.json<{ date: string; spans: string }>();
 }
 
 export async function getCostByModel(tenantId: string, days: number = 7) {
+  const resolvedTenantId = requireTenantId(tenantId);
   const result = await clickhouse.query({
     query: `
       SELECT
@@ -63,7 +67,7 @@ export async function getCostByModel(tenantId: string, days: number = 7) {
       GROUP BY model
       ORDER BY cost DESC
     `,
-    query_params: { tenantId, days },
+    query_params: { tenantId: resolvedTenantId, days },
     format: "JSONEachRow",
   });
   return result.json<{ model: string; cost: string }>();

@@ -1,10 +1,13 @@
 import { getOrCreateOrg } from "@/lib/org";
 import { prisma } from "@/lib/prisma";
+import { TenantContextFallback } from "@/components/tenant-context-fallback";
 import { KeysClient } from "./client";
 
 export default async function ApiKeysPage() {
   const org = await getOrCreateOrg();
-  if (!org) return null;
+  if (!org?.tenantId) {
+    return <TenantContextFallback />;
+  }
 
   const keys = await prisma.apiKey.findMany({
     where: { orgId: org.id },

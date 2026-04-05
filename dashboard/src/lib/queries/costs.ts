@@ -1,8 +1,10 @@
 "use server";
 
 import { clickhouse } from "@/lib/clickhouse";
+import { requireTenantId } from "@/lib/org";
 
 export async function getCostOverTime(tenantId: string, days: number = 30) {
+  const resolvedTenantId = requireTenantId(tenantId);
   const result = await clickhouse.query({
     query: `
       SELECT
@@ -16,13 +18,14 @@ export async function getCostOverTime(tenantId: string, days: number = 30) {
       GROUP BY date, model
       ORDER BY date
     `,
-    query_params: { tenantId, days },
+    query_params: { tenantId: resolvedTenantId, days },
     format: "JSONEachRow",
   });
   return result.json<{ date: string; model: string; cost: string }>();
 }
 
 export async function getCostByModelDetailed(tenantId: string, days: number = 30) {
+  const resolvedTenantId = requireTenantId(tenantId);
   const result = await clickhouse.query({
     query: `
       SELECT
@@ -38,7 +41,7 @@ export async function getCostByModelDetailed(tenantId: string, days: number = 30
       GROUP BY model
       ORDER BY totalCost DESC
     `,
-    query_params: { tenantId, days },
+    query_params: { tenantId: resolvedTenantId, days },
     format: "JSONEachRow",
   });
   return result.json<{

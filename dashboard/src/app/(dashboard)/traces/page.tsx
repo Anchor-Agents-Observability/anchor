@@ -1,5 +1,6 @@
 import { getOrCreateOrg } from "@/lib/org";
 import { getTraces } from "@/lib/queries/traces";
+import { TenantContextFallback } from "@/components/tenant-context-fallback";
 import { TraceTable } from "@/components/trace-table";
 
 export default async function TracesPage({
@@ -8,7 +9,9 @@ export default async function TracesPage({
   searchParams: Promise<{ model?: string; page?: string }>;
 }) {
   const org = await getOrCreateOrg();
-  if (!org) return null;
+  if (!org?.tenantId) {
+    return <TenantContextFallback />;
+  }
 
   const params = await searchParams;
   const page = parseInt(params.page || "1");

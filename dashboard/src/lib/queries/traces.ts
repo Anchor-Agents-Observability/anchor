@@ -1,6 +1,7 @@
 "use server";
 
 import { clickhouse } from "@/lib/clickhouse";
+import { requireTenantId } from "@/lib/org";
 
 export interface TraceRow {
   traceId: string;
@@ -19,6 +20,7 @@ export async function getTraces(
   tenantId: string,
   opts: { model?: string; limit?: number; offset?: number } = {}
 ): Promise<TraceRow[]> {
+  const resolvedTenantId = requireTenantId(tenantId);
   const { model, limit = 50, offset = 0 } = opts;
   const modelFilter = model ? "AND SpanAttributes['gen_ai.request.model'] = {model:String}" : "";
 
@@ -42,13 +44,14 @@ export async function getTraces(
       LIMIT {limit:UInt32}
       OFFSET {offset:UInt32}
     `,
-    query_params: { tenantId, model: model || "", limit, offset },
+    query_params: { tenantId: resolvedTenantId, model: model || "", limit, offset },
     format: "JSONEachRow",
   });
   return result.json<TraceRow>();
 }
 
 export async function getTraceDetail(tenantId: string, traceId: string) {
+  const resolvedTenantId = requireTenantId(tenantId);
   const result = await clickhouse.query({
     query: `
       SELECT
@@ -66,13 +69,14 @@ export async function getTraceDetail(tenantId: string, traceId: string) {
         AND TraceId = {traceId:String}
       ORDER BY Timestamp ASC
     `,
-    query_params: { tenantId, traceId },
+    query_params: { tenantId: resolvedTenantId, traceId },
     format: "JSONEachRow",
   });
   return result.json();
 }
 
 export async function getDistinctModels(tenantId: string): Promise<string[]> {
+  const resolvedTenantId = requireTenantId(tenantId);
   const result = await clickhouse.query({
     query: `
       SELECT DISTINCT SpanAttributes['gen_ai.request.model'] as model
@@ -81,7 +85,7 @@ export async function getDistinctModels(tenantId: string): Promise<string[]> {
         AND model != ''
       ORDER BY model
     `,
-    query_params: { tenantId },
+    query_params: { tenantId: resolvedTenantId },
     format: "JSONEachRow",
   });
   const rows = await result.json<{ model: string }>();
