@@ -5,89 +5,122 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
-	"github.com/rs/zerolog/log"
-	coltracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
-	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
+	collecttracev1 "go.opentelemetry.io/proto/otlp/collector/trace/v1"
+	commonv1 "go.opentelemetry.io/proto/otlp/common/v1"
+	resourcev1 "go.opentelemetry.io/proto/otlp/resource/v1"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/anchor-dev/gateway/internal/middleware"
 )
 
-type Forwarder struct {
-	collectorAddr string
-	client        *http.Client
+type Proxy struct {
+	client       *http.Client
+	collectorURL string
 }
 
-func NewForwarder(collectorAddr string) *Forwarder {
-	return &Forwarder{
-		collectorAddr: collectorAddr,
+// New builds a proxy that forwards trace exports to the collector's /v1/traces endpoint.
+func New(collectorAddr string) *Proxy {
+	return &Proxy{
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
+		collectorURL: strings.TrimRight(collectorAddr, "/") + "/v1/traces",
 	}
 }
 
-// InjectTenantAndForwardTraces deserializes the OTLP trace payload, injects
-// anchor.tenant_id into each resource, and forwards to the collector.
-func (f *Forwarder) InjectTenantAndForwardTraces(body []byte, tenantID string, contentType string) (int, []byte, error) {
-	if contentType == "application/x-protobuf" || contentType == "application/protobuf" {
-		return f.forwardProtobufTraces(body, tenantID)
-	}
-	// For JSON payloads or unknown types, forward as-is with a header hint.
-	// The collector can handle the tenant_id from a resource attribute we add
-	// at the SDK level in the future, or we parse JSON here later.
-	return f.forwardRaw(body, "/v1/traces", contentType)
-}
-
-func (f *Forwarder) forwardProtobufTraces(body []byte, tenantID string) (int, []byte, error) {
-	var req coltracepb.ExportTraceServiceRequest
-	if err := proto.Unmarshal(body, &req); err != nil {
-		return http.StatusBadRequest, nil, fmt.Errorf("unmarshal trace request: %w", err)
+// HandleTraces injects the authenticated tenant ID into OTLP resource attributes and forwards the payload upstream.
+func (p *Proxy) HandleTraces(w http.ResponseWriter, r *http.Request) {
+	principal, ok := middleware.PrincipalFromContext(r.Context())
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
-	tenantAttr := &commonpb.KeyValue{
-		Key: "anchor.tenant_id",
-		Value: &commonpb.AnyValue{
-			Value: &commonpb.AnyValue_StringValue{StringValue: tenantID},
-		},
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "failed to read request body", http.StatusBadRequest)
+		return
 	}
 
-	for _, rs := range req.ResourceSpans {
-		if rs.Resource == nil {
-			continue
+	forwardBody, err := injectTenant(body, principal.TenantID)
+	if err != nil {
+		http.Error(w, "invalid OTLP payload", http.StatusBadRequest)
+		return
+	}
+
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodPost, p.collectorURL, bytes.NewReader(forwardBody))
+	if err != nil {
+		http.Error(w, "failed to prepare upstream request", http.StatusInternalServerError)
+		return
+	}
+
+	copyHeaders(req.Header, r.Header)
+	req.Header.Del("Authorization")
+	req.Header.Del("Content-Length")
+
+	resp, err := p.client.Do(req)
+	if err != nil {
+		status := http.StatusBadGateway
+		if _, parseErr := url.Parse(p.collectorURL); parseErr != nil {
+			status = http.StatusInternalServerError
 		}
-		rs.Resource.Attributes = append(rs.Resource.Attributes, tenantAttr)
-	}
-
-	modified, err := proto.Marshal(&req)
-	if err != nil {
-		return http.StatusInternalServerError, nil, fmt.Errorf("marshal modified request: %w", err)
-	}
-
-	return f.forwardRaw(modified, "/v1/traces", "application/x-protobuf")
-}
-
-// ForwardRaw forwards a raw payload to the collector at the given path.
-func (f *Forwarder) ForwardRaw(body []byte, path, contentType string) (int, []byte, error) {
-	return f.forwardRaw(body, path, contentType)
-}
-
-func (f *Forwarder) forwardRaw(body []byte, path, contentType string) (int, []byte, error) {
-	url := f.collectorAddr + path
-
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
-	if err != nil {
-		return http.StatusInternalServerError, nil, fmt.Errorf("creating request: %w", err)
-	}
-	req.Header.Set("Content-Type", contentType)
-
-	resp, err := f.client.Do(req)
-	if err != nil {
-		log.Error().Err(err).Str("url", url).Msg("collector request failed")
-		return http.StatusBadGateway, nil, fmt.Errorf("forwarding to collector: %w", err)
+		http.Error(w, fmt.Sprintf("collector request failed: %v", err), status)
+		return
 	}
 	defer resp.Body.Close()
 
-	respBody, _ := io.ReadAll(resp.Body)
-	return resp.StatusCode, respBody, nil
+	copyHeaders(w.Header(), resp.Header)
+	w.WriteHeader(resp.StatusCode)
+	_, _ = io.Copy(w, resp.Body)
+}
+
+func injectTenant(body []byte, tenantID string) ([]byte, error) {
+	req := &collecttracev1.ExportTraceServiceRequest{}
+	if err := proto.Unmarshal(body, req); err != nil {
+		return nil, err
+	}
+
+	for _, resourceSpans := range req.GetResourceSpans() {
+		if resourceSpans.Resource == nil {
+			resourceSpans.Resource = &resourcev1.Resource{}
+		}
+		upsertStringAttribute(resourceSpans.Resource, "anchor.tenant_id", tenantID)
+	}
+
+	return proto.Marshal(req)
+}
+
+func upsertStringAttribute(resource *resourcev1.Resource, key string, value string) {
+	for _, attr := range resource.Attributes {
+		if attr.GetKey() == key {
+			attr.Value = stringValue(value)
+			return
+		}
+	}
+
+	resource.Attributes = append(resource.Attributes, &commonv1.KeyValue{
+		Key:   key,
+		Value: stringValue(value),
+	})
+}
+
+func stringValue(value string) *commonv1.AnyValue {
+	return &commonv1.AnyValue{
+		Value: &commonv1.AnyValue_StringValue{
+			StringValue: value,
+		},
+	}
+}
+
+func copyHeaders(dst http.Header, src http.Header) {
+	for key, values := range src {
+		dst.Del(key)
+		for _, value := range values {
+			dst.Add(key, value)
+		}
+	}
 }

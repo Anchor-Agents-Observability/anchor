@@ -31,7 +31,8 @@ services:
       redis:
         condition: service_healthy
       otel-collector:
-        condition: service_healthy
+        # condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
       interval: 10s
@@ -80,19 +81,21 @@ services:
       - CLICKHOUSE_PASSWORD=otelpass
     depends_on:
       clickhouse:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:13133"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+        condition: service_started
+        # condition: service_healthy
+    # healthcheck:
+    #   # test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:13133"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
 
   # Postgres - dashboard orgs, members, API keys (Prisma)
   postgres:
     image: postgres:16-alpine
     container_name: anchor-postgres
+    # Host 5433 avoids conflict with a local Postgres on 5432 (Homebrew, Postgres.app, etc.)
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -120,7 +123,8 @@ services:
       - NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/overview
       - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/overview
-      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/anchor}
+      # Always use service DNS; host DATABASE_URL in .env is for Prisma CLI on the machine.
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/anchor
       - CLICKHOUSE_URL=http://clickhouse:8123
       - CLICKHOUSE_USER=otel
       - CLICKHOUSE_PASSWORD=otelpass

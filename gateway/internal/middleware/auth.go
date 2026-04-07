@@ -2,50 +2,54 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/anchor-dev/gateway/internal/auth"
-	"github.com/rs/zerolog/log"
 )
 
-type ctxKey int
+type principalContextKey string
 
-const TenantInfoKey ctxKey = iota
+const principalKey principalContextKey = "principal"
 
-func Auth(validator *auth.Validator) func(http.Handler) http.Handler {
+// Authenticate loads the API key from the Authorization header and stores the tenant record in the request context.
+func Authenticate(rdb *redis.Client, defaultRateLimit int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get("Authorization")
-			if header == "" {
-				http.Error(w, `{"error":"missing Authorization header"}`, http.StatusUnauthorized)
-				return
-			}
-
-			token := strings.TrimPrefix(header, "Bearer ")
-			if token == header {
-				http.Error(w, `{"error":"invalid Authorization format, expected Bearer token"}`, http.StatusUnauthorized)
-				return
-			}
-
-			info, err := validator.Validate(r.Context(), token)
+			token := bearerToken(r.Header.Get("Authorization"))
+			record, err := auth.LookupAPIKey(r.Context(), rdb, token, defaultRateLimit)
 			if err != nil {
-				log.Error().Err(err).Msg("auth validation error")
-				http.Error(w, `{"error":"internal auth error"}`, http.StatusInternalServerError)
-				return
-			}
-			if info == nil {
-				http.Error(w, `{"error":"invalid API key"}`, http.StatusUnauthorized)
+				status := http.StatusUnauthorized
+				if !errors.Is(err, auth.ErrInvalidAPIKey) {
+					status = http.StatusInternalServerError
+				}
+				http.Error(w, http.StatusText(status), status)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), TenantInfoKey, info)
+			ctx := context.WithValue(r.Context(), principalKey, record)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
-func GetTenantInfo(ctx context.Context) *auth.TenantInfo {
-	info, _ := ctx.Value(TenantInfoKey).(*auth.TenantInfo)
-	return info
+// PrincipalFromContext returns the authenticated tenant record attached by Authenticate.
+func PrincipalFromContext(ctx context.Context) (*auth.APIKeyRecord, bool) {
+	record, ok := ctx.Value(principalKey).(*auth.APIKeyRecord)
+	return record, ok
+}
+
+func bearerToken(header string) string {
+	if header == "" {
+		return ""
+	}
+
+	parts := strings.SplitN(header, " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		return ""
+	}
+	return strings.TrimSpace(parts[1])
 }

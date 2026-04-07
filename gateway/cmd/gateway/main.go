@@ -1,9 +1,12 @@
 package main
 
 import (
-	"io"
+	"context"
+	"errors"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -11,7 +14,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/anchor-dev/gateway/internal/auth"
 	"github.com/anchor-dev/gateway/internal/config"
 	"github.com/anchor-dev/gateway/internal/middleware"
 	"github.com/anchor-dev/gateway/internal/proxy"
@@ -19,94 +21,64 @@ import (
 )
 
 func main() {
-	zerolog.TimeFieldFormat = time.RFC3339
-	log.Logger = zerolog.New(os.Stdout).With().Timestamp().Caller().Logger()
-
 	cfg := config.Load()
+
+	zerolog.TimeFieldFormat = time.RFC3339Nano
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddr,
 		Password: cfg.RedisPassword,
 		DB:       cfg.RedisDB,
 	})
+	defer rdb.Close()
 
-	validator := auth.NewValidator(rdb, cfg.DefaultRateLimit)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		log.Fatal().Err(err).Str("redis_addr", cfg.RedisAddr).Msg("cannot connect to redis")
+	}
+
 	limiter := ratelimit.NewLimiter(rdb)
-	forwarder := proxy.NewForwarder(cfg.CollectorAddr)
+	traceProxy := proxy.New(cfg.CollectorAddr)
 
-	r := chi.NewRouter()
-	r.Use(middleware.Logging)
-
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status":"ok"}`))
+	router := chi.NewRouter()
+	router.Use(middleware.RequestLogger())
+	router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
 	})
-
-	r.Group(func(r chi.Router) {
-		r.Use(middleware.Auth(validator))
-		r.Use(middleware.RateLimit(limiter))
-
-		r.Post("/v1/traces", traceHandler(forwarder))
-		r.Post("/v1/metrics", passthroughHandler(forwarder, "/v1/metrics"))
-		r.Post("/v1/logs", passthroughHandler(forwarder, "/v1/logs"))
-	})
+	router.With(
+		middleware.Authenticate(rdb, cfg.DefaultRateLimit),
+		middleware.RateLimit(limiter),
+	).Post("/v1/traces", traceProxy.HandleTraces)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      r,
+		Handler:      router,
 		ReadTimeout:  cfg.ReadTimeout,
 		WriteTimeout: cfg.WriteTimeout,
 	}
 
-	log.Info().Str("port", cfg.Port).Str("collector", cfg.CollectorAddr).Msg("gateway starting")
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal().Err(err).Msg("server failed")
-	}
-}
+	go func() {
+		<-ctx.Done()
 
-func traceHandler(fwd *proxy.Forwarder) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, `{"error":"failed to read body"}`, http.StatusBadRequest)
-			return
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Error().Err(err).Msg("server shutdown failed")
 		}
+	}()
 
-		info := middleware.GetTenantInfo(r.Context())
-		if info == nil {
-			http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
-			return
-		}
+	log.Info().
+		Str("port", cfg.Port).
+		Str("collector_addr", cfg.CollectorAddr).
+		Str("redis_addr", cfg.RedisAddr).
+		Msg("gateway listening")
 
-		status, respBody, err := fwd.InjectTenantAndForwardTraces(body, info.TenantID, r.Header.Get("Content-Type"))
-		if err != nil {
-			log.Error().Err(err).Msg("trace forwarding failed")
-			http.Error(w, `{"error":"failed to forward traces"}`, http.StatusBadGateway)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(status)
-		w.Write(respBody)
-	}
-}
-
-func passthroughHandler(fwd *proxy.Forwarder, path string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, `{"error":"failed to read body"}`, http.StatusBadRequest)
-			return
-		}
-
-		status, respBody, err := fwd.ForwardRaw(body, path, r.Header.Get("Content-Type"))
-		if err != nil {
-			log.Error().Err(err).Msg("forwarding failed")
-			http.Error(w, `{"error":"failed to forward"}`, http.StatusBadGateway)
-			return
-		}
-
-		w.WriteHeader(status)
-		w.Write(respBody)
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatal().Err(err).Msg("gateway exited")
 	}
 }

@@ -2,69 +2,70 @@ package auth
 
 import (
 	"context"
-	"fmt"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 )
 
-type TenantInfo struct {
+var ErrInvalidAPIKey = errors.New("invalid api key")
+
+type APIKeyRecord struct {
 	TenantID  string
-	RateLimit int
 	Tier      string
+	RateLimit int
+	Active    bool
 }
 
-type Validator struct {
-	rdb          *redis.Client
-	defaultLimit int
+func HashAPIKey(plain string) string {
+	sum := sha256.Sum256([]byte(plain))
+	return hex.EncodeToString(sum[:])
 }
 
-func NewValidator(rdb *redis.Client, defaultLimit int) *Validator {
-	return &Validator{rdb: rdb, defaultLimit: defaultLimit}
-}
+func LookupAPIKey(ctx context.Context, rdb *redis.Client, plain string, defaultRateLimit int) (*APIKeyRecord, error) {
+	if strings.TrimSpace(plain) == "" {
+		return nil, ErrInvalidAPIKey
+	}
 
-// Validate looks up an API key hash in Redis and returns tenant info.
-func (v *Validator) Validate(ctx context.Context, plainKey string) (*TenantInfo, error) {
-	hash := HashKey(plainKey)
-	redisKey := "apikey:" + hash
-
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
-	defer cancel()
-
-	vals, err := v.rdb.HGetAll(ctx, redisKey).Result()
+	values, err := rdb.HGetAll(ctx, redisKey(HashAPIKey(plain))).Result()
 	if err != nil {
-		return nil, fmt.Errorf("redis lookup: %w", err)
+		return nil, err
 	}
-	if len(vals) == 0 {
-		return nil, nil
-	}
-
-	if vals["active"] != "true" {
-		return nil, nil
+	if len(values) == 0 || values["active"] != "true" {
+		return nil, ErrInvalidAPIKey
 	}
 
-	rateLimit := v.defaultLimit
-	if rl, ok := vals["rate_limit"]; ok {
-		if parsed, err := strconv.Atoi(rl); err == nil {
-			rateLimit = parsed
+	record := &APIKeyRecord{
+		TenantID:  values["tenant_id"],
+		Tier:      values["tier"],
+		RateLimit: defaultRateLimit,
+		Active:    true,
+	}
+	if record.TenantID == "" {
+		return nil, ErrInvalidAPIKey
+	}
+	if values["rate_limit"] != "" {
+		if limit, convErr := strconv.Atoi(values["rate_limit"]); convErr == nil && limit > 0 {
+			record.RateLimit = limit
 		}
 	}
 
-	return &TenantInfo{
-		TenantID:  vals["tenant_id"],
-		RateLimit: rateLimit,
-		Tier:      vals["tier"],
-	}, nil
+	return record, nil
 }
 
-// SeedKey writes an API key record into Redis. Used by the seed CLI.
-func SeedKey(ctx context.Context, rdb *redis.Client, hash, tenantID, tier string, rateLimit int) error {
-	redisKey := "apikey:" + hash
-	return rdb.HSet(ctx, redisKey, map[string]interface{}{
+func SeedKey(ctx context.Context, rdb *redis.Client, hash string, tenantID string, tier string, rateLimit int) error {
+	fields := map[string]string{
 		"tenant_id":  tenantID,
-		"rate_limit": rateLimit,
 		"tier":       tier,
+		"rate_limit": strconv.Itoa(rateLimit),
 		"active":     "true",
-	}).Err()
+	}
+	return rdb.HSet(ctx, redisKey(hash), fields).Err()
+}
+
+func redisKey(hash string) string {
+	return "apikey:" + hash
 }

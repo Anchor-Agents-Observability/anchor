@@ -1,36 +1,33 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/anchor-dev/gateway/internal/ratelimit"
-	"github.com/rs/zerolog/log"
 )
 
+// RateLimit rejects requests that exceed the tenant's current per-minute span limit.
 func RateLimit(limiter *ratelimit.Limiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			info := GetTenantInfo(r.Context())
-			if info == nil {
-				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+			principal, ok := PrincipalFromContext(r.Context())
+			if !ok {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
 
-			allowed, remaining, err := limiter.Allow(r.Context(), info.TenantID, info.RateLimit)
+			allowed, remaining, err := limiter.Allow(r.Context(), principal.TenantID, principal.RateLimit)
 			if err != nil {
-				log.Error().Err(err).Str("tenant_id", info.TenantID).Msg("rate limit check failed")
-				// Fail open on rate limit errors so we don't drop valid traffic
-				next.ServeHTTP(w, r)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
 
-			w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", info.RateLimit))
-			w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", remaining))
+			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(principal.RateLimit))
+			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(remaining))
 
 			if !allowed {
-				w.Header().Set("Retry-After", "60")
-				http.Error(w, `{"error":"rate limit exceeded"}`, http.StatusTooManyRequests)
+				http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
 				return
 			}
 
