@@ -15,8 +15,11 @@ function isDatabaseUnavailableError(error: unknown): boolean {
     return true;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P1001") {
-    return true;
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    // P1001: can't reach server; P2021: table missing (migrations not applied yet).
+    if (error.code === "P1001" || error.code === "P2021") {
+      return true;
+    }
   }
 
   return error instanceof Error && error.message.includes("Can't reach database server");

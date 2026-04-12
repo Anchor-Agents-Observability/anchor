@@ -1,18 +1,16 @@
-function readRequiredEnv(...names: string[]): string {
-  for (const name of names) {
-    const value = process.env[name];
-    if (typeof value === "string" && value.trim().length > 0) {
-      return value;
-    }
-  }
-
-  throw new Error(`Missing required environment variable: ${names.join(" or ")}`);
-}
-
+// Literal NEXT_PUBLIC_* access so Next inlines them in client/Edge bundles.
 export function getSupabaseUrl() {
-  return readRequiredEnv("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (typeof url === "string" && url.trim().length > 0) {
+    return url;
+  }
+  throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
 }
 
 export function getSupabaseAnonKey() {
-  return readRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (typeof key === "string" && key.trim().length > 0) {
+    return key;
+  }
+  throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY");
 }

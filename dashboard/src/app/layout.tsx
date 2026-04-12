@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -28,7 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script id="theme-script" strategy="beforeInteractive">{themeScript}</Script>
+        {/* Inline script avoids Next Script + string children (React warns on nested script in client trees). */}
+        <script
+          id="theme-script"
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+          suppressHydrationWarning
+        />
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased selection:bg-foreground selection:text-background">
         <ThemeProvider defaultTheme="system">
