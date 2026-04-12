@@ -4,7 +4,13 @@ import Link from "next/link";
 import type { TraceRow } from "@/lib/queries/traces";
 import { formatCost, formatLatency } from "@/lib/utils";
 
-export function TraceTable({ traces }: { traces: TraceRow[] }) {
+export function TraceTable({
+  traces,
+  traceHrefBase = "/traces",
+}: {
+  traces: TraceRow[];
+  traceHrefBase?: string;
+}) {
   if (traces.length === 0) {
     return (
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-12 text-center text-zinc-500">
@@ -37,8 +43,8 @@ export function TraceTable({ traces }: { traces: TraceRow[] }) {
               </td>
               <td className="px-4 py-3">
                 <Link
-                  href={`/traces/${trace.traceId}`}
-                  className="font-medium text-cyan-400 hover:underline"
+                  href={`${traceHrefBase}/${trace.traceId}`}
+                  className="font-medium text-foreground hover:underline"
                 >
                   {trace.spanName}
                 </Link>

@@ -93,9 +93,9 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: anchor-postgres
-    # Host 5433 avoids conflict with a local Postgres on 5432 (Homebrew, Postgres.app, etc.)
+    # Local mapped to 5434 to avoid port conflicts with other running postgres instances
     ports:
-      - "5433:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -117,12 +117,8 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:-}
-      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
-      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-      - NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/overview
-      - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/overview
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
       # Always use service DNS; host DATABASE_URL in .env is for Prisma CLI on the machine.
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/anchor
       - CLICKHOUSE_URL=http://clickhouse:8123
@@ -175,4 +171,3 @@ volumes:
 networks:
   default:
     name: anchor-network
-

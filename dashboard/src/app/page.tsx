@@ -1,8 +1,8 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 export default async function Home() {
-  const { userId } = await auth();
+  const user = await getCurrentUser();
 
-  redirect(userId ? "/overview" : "/sign-in");
+  redirect(user ? "/overview" : "/sign-in");
 }

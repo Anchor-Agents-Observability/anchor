@@ -1,18 +1,52 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/config";
 
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/api/webhooks(.*)",
-]);
+function isPublicRoute(pathname: string) {
+  return pathname.startsWith("/sign-in") || pathname.startsWith("/auth/callback") || pathname.startsWith("/api/webhooks");
+}
 
-export default clerkMiddleware(async (auth, request) => {
-  const isPublic = isPublicRoute(request);
+export default async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request,
+  });
 
-  if (!isPublic) {
-    await auth.protect();
+  const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        response = NextResponse.next({
+          request,
+        });
+
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          response.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const pathname = request.nextUrl.pathname;
+
+  if (!user && !isPublicRoute(pathname)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/sign-in";
+    redirectUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(redirectUrl);
   }
-});
+
+  if (user && pathname === "/sign-in") {
+    return NextResponse.redirect(new URL("/overview", request.url));
+  }
+
+  return response;
+}
 
 export const config = {
   matcher: [

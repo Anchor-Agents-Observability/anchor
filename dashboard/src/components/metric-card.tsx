@@ -1,28 +1,21 @@
-import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 
 interface MetricCardProps {
   title: string;
   value: string;
-  subtitle?: string;
   icon: LucideIcon;
-  className?: string;
 }
 
-export function MetricCard({ title, value, subtitle, icon: Icon, className }: MetricCardProps) {
+export function MetricCard({ title, value, icon: Icon }: MetricCardProps) {
   return (
-    <div
-      className={cn(
-        "rounded-xl border border-zinc-800 bg-zinc-900/50 p-6",
-        className
-      )}
-    >
+    <div className="tech-panel rounded-md p-5 transition-colors duration-200 hover:bg-panel-hover">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-zinc-400">{title}</p>
-        <Icon className="h-4 w-4 text-zinc-500" />
+        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+        <Icon className="h-4 w-4 text-foreground/70" />
       </div>
-      <p className="mt-2 text-3xl font-bold tracking-tight">{value}</p>
-      {subtitle && <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>}
+      <div className="mt-5 flex items-baseline gap-2">
+        <span className="text-3xl font-semibold text-foreground tracking-tight">{value}</span>
+      </div>
     </div>
   );
 }

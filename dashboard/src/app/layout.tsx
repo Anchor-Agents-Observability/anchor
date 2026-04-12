@@ -1,11 +1,24 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
+import Script from "next/script";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Anchor Dashboard",
+  title: "Ward Dashboard",
   description: "LLM Observability Dashboard",
 };
+
+const themeScript = `
+  try {
+    let theme = window.localStorage.getItem('theme');
+    if (!theme) theme = 'system';
+    if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  } catch (_) {}
+`;
 
 export default function RootLayout({
   children,
@@ -13,12 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script id="theme-script" strategy="beforeInteractive">{themeScript}</Script>
+      </head>
+      <body className="min-h-screen bg-background text-foreground antialiased selection:bg-foreground selection:text-background">
+        <ThemeProvider defaultTheme="system">
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

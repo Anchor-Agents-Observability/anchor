@@ -43,7 +43,7 @@ export function CreateKeyDialog({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-cyan-400"
+        className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-hover"
       >
         <Plus className="h-4 w-4" />
         Create Key
@@ -61,7 +61,7 @@ export function CreateKeyDialog({
               Copy this key now. You will not be able to see it again.
             </p>
             <div className="mt-4 flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 p-3">
-              <code className="flex-1 break-all text-sm text-cyan-400">{createdKey}</code>
+              <code className="flex-1 break-all text-sm text-zinc-100">{createdKey}</code>
               <button
                 onClick={handleCopy}
                 className="shrink-0 rounded p-1.5 transition-colors hover:bg-zinc-700"
@@ -91,7 +91,7 @@ export function CreateKeyDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Production, Staging"
-              className="mt-4 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm placeholder-zinc-500 outline-none focus:border-cyan-500"
+              className="mt-4 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm placeholder-zinc-500 outline-none focus:border-zinc-400"
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               autoFocus
             />
@@ -105,7 +105,7 @@ export function CreateKeyDialog({
               <button
                 onClick={handleCreate}
                 disabled={!name.trim() || loading}
-                className="flex-1 rounded-lg bg-cyan-500 py-2 text-sm font-medium text-black transition-colors hover:bg-cyan-400 disabled:opacity-50"
+                className="flex-1 rounded-lg bg-white py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-200 disabled:opacity-50"
               >
                 {loading ? "Creating..." : "Create"}
               </button>

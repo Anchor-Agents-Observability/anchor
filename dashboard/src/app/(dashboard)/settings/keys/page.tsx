@@ -14,7 +14,7 @@ export default async function ApiKeysPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const serialized = keys.map((k) => ({
+  const serialized = keys.map((k: (typeof keys)[number]) => ({
     id: k.id,
     name: k.name,
     keyPrefix: k.keyPrefix,
@@ -29,7 +29,7 @@ export default async function ApiKeysPage() {
         <div>
           <h1 className="text-2xl font-bold">API Keys</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Manage keys used by the Anchor SDK to send traces
+            Manage keys used by the Ward SDK to send traces
           </p>
         </div>
       </div>
