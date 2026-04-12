@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ComponentType } from "react";
 import { useState } from "react";
 import {
+  Bug,
   ChevronLeft,
   ChevronRight,
   DollarSign,
@@ -53,7 +54,14 @@ function buildWorkspaceNav(): NavGroup[] {
       label: "Workspace",
       items: [
         { href: "/overview", label: "Overview", icon: LayoutDashboard },
-        { href: "/costs", label: "Costs", icon: DollarSign },
+        { href: "/traces", label: "Tracing", icon: List },
+        { href: "/monitors", label: "Monitors", icon: Radar },
+      ],
+    },
+    {
+      label: "True sight",
+      items: [
+        { href: "/wardbugger", label: "Wardbugger", icon: Bug },
       ],
     },
   ];
@@ -63,27 +71,21 @@ function buildProjectNav(projectSlug: string): NavGroup[] {
   const base = `/projects/${projectSlug}`;
   return [
     {
-      label: "Ward",
+      label: "Observe",
       items: [
         { href: base, label: "Dashboard", icon: LayoutDashboard },
-        { href: `${base}/traces`, label: "Traces", icon: List },
-        { href: `${base}/sessions`, label: "Sessions", icon: Waypoints },
+        { href: `${base}/traces`, label: "Tracing", icon: List },
         { href: `${base}/monitors`, label: "Monitors", icon: Radar },
       ],
     },
     {
-      label: "Evaluate",
+      label: "Workbench",
       items: [
         { href: `${base}/datasets`, label: "Datasets", icon: FolderKanban },
+        { href: `${base}/playground`, label: "Playgrounds", icon: Sparkles },
         { href: `${base}/experiments`, label: "Experiments", icon: FlaskConical },
-        { href: `${base}/evals`, label: "Evals", icon: TestTube2 },
         { href: `${base}/ab-tests`, label: "A/B Tests", icon: SlidersHorizontal },
-      ],
-    },
-    {
-      label: "Build",
-      items: [
-        { href: `${base}/playground`, label: "Playground", icon: Sparkles },
+        { href: `${base}/evals`, label: "Evaluators", icon: TestTube2 },
         { href: `${base}/prompts`, label: "Prompts", icon: LibraryBig },
       ],
     },
@@ -107,6 +109,7 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
   const activeProjectSlug = resolveProjectSlug(pathname, projectSlug);
   const navGroups = activeProjectSlug ? buildProjectNav(activeProjectSlug) : buildWorkspaceNav();
   const workspaceCompactLabel = workspaceLabel.slice(0, 2).toUpperCase() || "WS";
@@ -120,29 +123,38 @@ export function Sidebar({
       )}
     >
       <div className="border-b tech-border px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm">
-            <Logo className="h-6 w-6 text-background" />
-          </div>
-          {!collapsed ? (
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Ward
-              </p>
-              <p className="truncate text-sm font-medium text-foreground">
-                {title}
-              </p>
-            </div>
-          ) : null}
+        <div className={cn("group flex items-center", collapsed ? "justify-center" : "gap-3")}>
           <button
             type="button"
-            onClick={() => setCollapsed((current) => !current)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border tech-border bg-background text-muted-foreground transition-colors hover:bg-panel-hover hover:text-foreground"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-pressed={collapsed}
+            onClick={() => collapsed && setCollapsed(false)}
+            className={cn(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm transition-colors",
+              collapsed && "cursor-pointer hover:bg-foreground/90"
+            )}
+            aria-label={collapsed ? "Expand sidebar" : undefined}
           >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            <Logo className="h-6 w-6 text-background" />
           </button>
+          {!collapsed ? (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  Ward
+                </p>
+                <p className="truncate text-sm font-medium text-foreground">
+                  {title}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCollapsed(true)}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border tech-border bg-background text-muted-foreground opacity-0 transition-opacity hover:bg-panel-hover hover:text-foreground group-hover:opacity-100"
+                aria-label="Collapse sidebar"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </>
+          ) : null}
         </div>
 
         <div
@@ -151,10 +163,12 @@ export function Sidebar({
             collapsed && "px-2 py-3 text-center"
           )}
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-            Workspace
-          </p>
-          <p className={cn("mt-2 truncate text-sm font-medium text-foreground", collapsed && "mt-1 text-xs")}>
+          {!collapsed ? (
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Workspace
+            </p>
+          ) : null}
+          <p className={cn("truncate text-sm font-medium text-foreground", !collapsed && "mt-2", collapsed && "text-xs")}>
             {collapsed ? workspaceCompactLabel : workspaceLabel}
           </p>
         </div>
@@ -231,38 +245,50 @@ export function Sidebar({
         </div>
 
         <div className="mt-4 rounded-2xl border tech-border bg-background/80 p-3">
-          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
-            {userAvatarUrl ? (
-              <div
-                aria-hidden="true"
-                className="h-10 w-10 rounded-2xl bg-cover bg-center"
-                style={{ backgroundImage: `url(${userAvatarUrl})` }}
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground/10 text-xs font-semibold text-foreground">
-                {getInitials(userEmail)}
-              </div>
-            )}
+          <div className={cn("relative flex items-center", collapsed ? "justify-center" : "gap-3")}>
+            <button type="button" onClick={() => setShowLogout(!showLogout)} className="shrink-0 rounded-2xl outline-none transition-opacity hover:opacity-80">
+              {userAvatarUrl ? (
+                <div
+                  aria-hidden="true"
+                  className="h-10 w-10 rounded-2xl bg-cover bg-center"
+                  style={{ backgroundImage: `url(${userAvatarUrl})` }}
+                />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-foreground/10 text-xs font-semibold text-foreground">
+                  {getInitials(userEmail)}
+                </div>
+              )}
+            </button>
 
             {!collapsed ? (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{userEmail}</p>
-                <p className="text-xs text-muted-foreground">Workspace operator</p>
+                {showLogout ? (
+                  <form action="/auth/sign-out" method="post">
+                    <button
+                      type="submit"
+                      className="truncate text-sm font-medium text-destructive transition-colors hover:underline"
+                    >
+                      Log out
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowLogout(true)}
+                    className="truncate text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
+                  >
+                    Profile
+                  </button>
+                )}
               </div>
-            ) : null}
+            ) : (
+              collapsed && showLogout ? (
+                <form action="/auth/sign-out" method="post" className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/90 backdrop-blur">
+                  <button type="submit" className="text-xs font-bold text-destructive hover:underline">Out</button>
+                </form>
+              ) : null
+            )}
           </div>
-
-          <form action="/auth/sign-out" method="post" className={cn("mt-3", collapsed && "text-center")}>
-            <button
-              type="submit"
-              className={cn(
-                "rounded-xl border tech-border bg-panel px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-panel-hover hover:text-foreground",
-                collapsed && "w-full"
-              )}
-            >
-              {collapsed ? "Out" : "Sign out"}
-            </button>
-          </form>
         </div>
       </div>
     </aside>
