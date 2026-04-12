@@ -1,7 +1,7 @@
 """
 Standalone exporter/processor factories.
 
-Not used by anchor.init() (which wires everything in tracer.py), but available
+Not used by ward.init() (which wires everything in tracer.py), but available
 for advanced users who want to compose their own TracerProvider.
 """
 

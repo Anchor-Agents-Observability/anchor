@@ -7,7 +7,7 @@ from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry import trace
 from wrapt import wrap_function_wrapper
 
-from anchor.instrumentation.openai.openai import (
+from ward.instrumentation.openai.openai import (
     chat_completions,
     embedding,
     responses,

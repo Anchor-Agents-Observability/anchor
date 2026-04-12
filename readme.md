@@ -1,18 +1,18 @@
-# Anchor SDK
+# Ward SDK
 
 **Zero-code observability for LLM applications.**
 
-Anchor instruments your LLM calls with [OpenTelemetry](https://opentelemetry.io/) — one line of code gives you full tracing, token tracking, latency metrics, and cost visibility. Ship traces to any OTel-compatible backend (Grafana, Jaeger, Datadog, etc.).
+Ward instruments your LLM calls with [OpenTelemetry](https://opentelemetry.io/) — one line of code gives you full tracing, token tracking, latency metrics, and cost visibility. Ship traces to any OTel-compatible backend (Grafana, Jaeger, Datadog, etc.).
 
 ## Quick Start
 
 ```bash
-pip install anchor-sdk[openai]
+pip install ward-sdk[openai]
 ```
 
 ```python
-import anchor
-anchor.init(otlp_endpoint="http://localhost:4318")
+import ward
+ward.init(otlp_endpoint="http://localhost:4318")
 
 from openai import OpenAI
 client = OpenAI()
@@ -25,7 +25,7 @@ response = client.chat.completions.create(
 
 ## Features
 
-- **Zero-code instrumentation** — `anchor.init()` patches LLM clients at import time via [wrapt](https://github.com/GrahamDumpleton/wrapt)
+- **Zero-code instrumentation** — `ward.init()` patches LLM clients at import time via [wrapt](https://github.com/GrahamDumpleton/wrapt)
 - **Streaming support** — full telemetry for streaming responses (auto-injects `stream_options` for token data)
 - **Async support** — instruments both sync and async clients
 - **Cost tracking** — automatic USD cost calculation for common models
@@ -43,13 +43,13 @@ response = client.chat.completions.create(
 
 ```bash
 # OpenAI only
-pip install anchor-sdk[openai]
+pip install ward-sdk[openai]
 
 # Anthropic only
-pip install anchor-sdk[anthropic]
+pip install ward-sdk[anthropic]
 
 # Both
-pip install anchor-sdk[all]
+pip install ward-sdk[all]
 ```
 
 ## Usage
@@ -57,9 +57,9 @@ pip install anchor-sdk[all]
 ### Basic (OpenAI)
 
 ```python
-import anchor
+import ward
 
-anchor.init(
+ward.init(
     application_name="my-app",
     environment="production",
     otlp_endpoint="http://localhost:4318",
@@ -76,9 +76,9 @@ response = client.chat.completions.create(
 ### Anthropic
 
 ```python
-import anchor
+import ward
 
-anchor.init(
+ward.init(
     instrumentations=["anthropic"],
     otlp_endpoint="http://localhost:4318",
 )
@@ -95,7 +95,7 @@ message = client.messages.create(
 ### Both providers
 
 ```python
-anchor.init(
+ward.init(
     instrumentations=["openai", "anthropic"],
     otlp_endpoint="http://localhost:4318",
 )
@@ -103,7 +103,7 @@ anchor.init(
 
 ### Streaming
 
-Streaming works automatically. Anchor wraps the stream iterator and captures telemetry when the stream completes:
+Streaming works automatically. Ward wraps the stream iterator and captures telemetry when the stream completes:
 
 ```python
 stream = client.chat.completions.create(
@@ -133,7 +133,7 @@ response = await client.chat.completions.create(
 For privacy, you can disable prompt/response logging:
 
 ```python
-anchor.init(
+ward.init(
     otlp_endpoint="http://localhost:4318",
     capture_message_content=False,
 )
@@ -141,7 +141,7 @@ anchor.init(
 
 ## Local Observability Stack
 
-Anchor ships a Docker Compose stack with ClickHouse, OpenTelemetry Collector, and Grafana:
+Ward ships a Docker Compose stack with ClickHouse, OpenTelemetry Collector, and Grafana:
 
 ```bash
 docker-compose up -d
@@ -159,7 +159,7 @@ A pre-built LLM Traces dashboard is provisioned automatically at [http://localho
 
 ## Configuration
 
-### `anchor.init()` parameters
+### `ward.init()` parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -181,7 +181,7 @@ A pre-built LLM Traces dashboard is provisioned automatically at [http://localho
 
 ## Span Attributes
 
-Anchor follows the [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/):
+Ward follows the [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/):
 
 | Attribute | Example |
 |-----------|---------|
@@ -211,7 +211,7 @@ python src/tests/openai_test.py
 
 ```
 Your Code
-  → anchor.init() patches LLM clients via wrapt
+  → ward.init() patches LLM clients via wrapt
     → LLM call intercepted, OTel span created
       → Request attributes set (model, messages, params)
       → Original LLM call executes

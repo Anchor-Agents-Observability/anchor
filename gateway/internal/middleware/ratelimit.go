@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/anchor-dev/gateway/internal/ratelimit"
+	"github.com/ward-dev/gateway/internal/ratelimit"
 )
 
 // RateLimit rejects requests that exceed the tenant's current per-minute span limit.

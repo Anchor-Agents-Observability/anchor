@@ -7,7 +7,7 @@ from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry import trace
 from wrapt import wrap_function_wrapper
 
-from anchor.instrumentation.anthropic.anthropic import (
+from ward.instrumentation.anthropic.anthropic import (
     messages_create,
     async_messages_create,
 )

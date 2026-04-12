@@ -14,10 +14,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/anchor-dev/gateway/internal/config"
-	"github.com/anchor-dev/gateway/internal/middleware"
-	"github.com/anchor-dev/gateway/internal/proxy"
-	"github.com/anchor-dev/gateway/internal/ratelimit"
+	"github.com/ward-dev/gateway/internal/config"
+	"github.com/ward-dev/gateway/internal/middleware"
+	"github.com/ward-dev/gateway/internal/proxy"
+	"github.com/ward-dev/gateway/internal/ratelimit"
 )
 
 func main() {

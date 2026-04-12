@@ -9,8 +9,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/anchor-dev/gateway/internal/auth"
-	"github.com/anchor-dev/gateway/internal/config"
+	"github.com/ward-dev/gateway/internal/auth"
+	"github.com/ward-dev/gateway/internal/config"
 )
 
 func main() {
@@ -60,8 +60,8 @@ func main() {
 	fmt.Println()
 	fmt.Println("Use this key in your SDK:")
 	fmt.Println()
-	fmt.Println("  import anchor")
-	fmt.Printf("  anchor.init(\n")
+	fmt.Println("  import ward")
+	fmt.Printf("  ward.init(\n")
 	fmt.Printf("      otlp_endpoint=\"http://localhost:8080\",\n")
 	fmt.Printf("      otlp_headers={\"Authorization\": \"Bearer %s\"},\n", plain)
 	fmt.Printf("  )\n")

@@ -1,5 +1,5 @@
 """
-Shared test fixtures for Anchor SDK tests.
+Shared test fixtures for Ward SDK tests.
 """
 
 import sys
@@ -52,4 +52,4 @@ def tracer(span_exporter):
     """Fresh TracerProvider + tracer wired to the in-memory exporter."""
     provider = TracerProvider()
     provider.add_span_processor(SimpleSpanProcessor(span_exporter))
-    return provider.get_tracer("anchor-test")
+    return provider.get_tracer("ward-test")

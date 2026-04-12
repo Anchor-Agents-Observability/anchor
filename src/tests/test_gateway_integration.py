@@ -5,10 +5,10 @@ Prerequisites:
   1. docker-compose up -d  (full stack including gateway + redis)
   2. Seed an API key:
        cd gateway && REDIS_ADDR=localhost:6379 go run ./cmd/seed --tenant test-tenant-001
-     Copy the printed key and set it as ANCHOR_TEST_API_KEY env var.
+     Copy the printed key and set it as WARD_TEST_API_KEY env var.
 
 Usage:
-  ANCHOR_TEST_API_KEY=ak_live_xxx python -m pytest src/tests/test_gateway_integration.py -v
+  WARD_TEST_API_KEY=ak_live_xxx python -m pytest src/tests/test_gateway_integration.py -v
 """
 
 import os
@@ -19,14 +19,14 @@ import requests
 
 
 GATEWAY_URL = os.getenv("GATEWAY_URL", "http://localhost:8080")
-API_KEY = os.getenv("ANCHOR_TEST_API_KEY", "")
+API_KEY = os.getenv("WARD_TEST_API_KEY", "")
 CLICKHOUSE_URL = os.getenv("CLICKHOUSE_URL", "http://localhost:8123")
 
 
 @pytest.fixture(autouse=True)
 def require_api_key():
     if not API_KEY:
-        pytest.skip("ANCHOR_TEST_API_KEY not set — run seed first")
+        pytest.skip("WARD_TEST_API_KEY not set — run seed first")
 
 
 class TestGatewayHealth:
@@ -66,11 +66,11 @@ class TestEndToEndTraces:
     def test_sdk_traces_reach_clickhouse(self):
         """Send traces via the SDK through the gateway and verify they land in ClickHouse."""
         try:
-            import anchor
+            import ward
         except ImportError:
-            pytest.skip("anchor SDK not installed")
+            pytest.skip("ward SDK not installed")
 
-        tracer = anchor.init(
+        tracer = ward.init(
             application_name="gateway-integration-test",
             environment="test",
             otlp_endpoint=GATEWAY_URL,
@@ -79,11 +79,11 @@ class TestEndToEndTraces:
         )
 
         if tracer is None:
-            pytest.fail("anchor.init() returned None")
+            pytest.fail("ward.init() returned None")
 
         with tracer.start_as_current_span("integration-test-span") as span:
             span.set_attribute("test.marker", "gateway-e2e")
-            span.set_attribute("anchor.tenant_id", "test-tenant-001")
+            span.set_attribute("ward.tenant_id", "test-tenant-001")
 
         # Give the pipeline time to flush
         time.sleep(5)
@@ -110,7 +110,7 @@ class TestEndToEndTraces:
         assert len(rows) > 0, "No spans found in ClickHouse for integration-test-span"
 
         resource_attrs = rows[0].get("ResourceAttributes", {})
-        assert "anchor.tenant_id" in str(resource_attrs), (
+        assert "ward.tenant_id" in str(resource_attrs), (
             f"tenant_id not found in resource attributes: {resource_attrs}"
         )
 

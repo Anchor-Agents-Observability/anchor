@@ -1,5 +1,5 @@
 """
-Unit tests for Anchor SDK.
+Unit tests for Ward SDK.
 Uses mocked LLM responses and in-memory span exporter.
 """
 
@@ -14,7 +14,7 @@ src_path = Path(__file__).parent.parent
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-from anchor.pricing import calculate_cost
+from ward.pricing import calculate_cost
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ class TestOpenAISyncNonStreaming:
         return resp
 
     def test_chat_completion_creates_span(self, tracer, span_exporter):
-        from anchor.instrumentation.openai.openai import chat_completions
+        from ward.instrumentation.openai.openai import chat_completions
 
         config = {
             "tracer": tracer,
@@ -115,7 +115,7 @@ class TestOpenAISyncNonStreaming:
         assert span.attributes["gen_ai.response.finish_reasons"] == "stop"
 
     def test_captures_message_content(self, tracer, span_exporter):
-        from anchor.instrumentation.openai.openai import chat_completions
+        from ward.instrumentation.openai.openai import chat_completions
 
         config = {
             "tracer": tracer,
@@ -155,7 +155,7 @@ class TestOpenAISyncNonStreaming:
         assert span.attributes["gen_ai.assistant.message.0"] == "Hello!"
 
     def test_disables_content_capture(self, tracer, span_exporter):
-        from anchor.instrumentation.openai.openai import chat_completions
+        from ward.instrumentation.openai.openai import chat_completions
 
         config = {
             "tracer": tracer,
@@ -187,7 +187,7 @@ class TestOpenAISyncNonStreaming:
         assert "gen_ai.user.message.0" not in span.attributes
 
     def test_exception_records_error(self, tracer, span_exporter):
-        from anchor.instrumentation.openai.openai import chat_completions
+        from ward.instrumentation.openai.openai import chat_completions
 
         config = {
             "tracer": tracer,
@@ -248,7 +248,7 @@ class TestOpenAISyncStreaming:
         return chunks
 
     def test_streaming_captures_tokens(self, tracer, span_exporter):
-        from anchor.instrumentation.openai.openai import chat_completions
+        from ward.instrumentation.openai.openai import chat_completions
 
         config = {
             "tracer": tracer,
@@ -288,7 +288,7 @@ class TestOpenAISyncStreaming:
         assert span.attributes["gen_ai.assistant.message.0"] == "Hello world!"
 
     def test_streaming_injects_usage_option(self, tracer, span_exporter):
-        from anchor.instrumentation.openai.openai import chat_completions
+        from ward.instrumentation.openai.openai import chat_completions
 
         config = {
             "tracer": tracer,
@@ -328,7 +328,7 @@ class TestOpenAISyncStreaming:
 class TestOpenAIAsyncNonStreaming:
     @pytest.mark.asyncio
     async def test_async_chat_creates_span(self, tracer, span_exporter):
-        from anchor.instrumentation.openai.openai import async_chat_completions
+        from ward.instrumentation.openai.openai import async_chat_completions
 
         config = {
             "tracer": tracer,
@@ -387,7 +387,7 @@ class TestAnthropicSync:
         return resp
 
     def test_messages_create_span(self, tracer, span_exporter):
-        from anchor.instrumentation.anthropic.anthropic import messages_create
+        from ward.instrumentation.anthropic.anthropic import messages_create
 
         config = {
             "tracer": tracer,
@@ -432,18 +432,18 @@ class TestAnthropicSync:
 
 class TestSDKInit:
     def test_init_returns_tracer(self):
-        import anchor
+        import ward
 
-        tracer = anchor.init(
+        tracer = ward.init(
             application_name="test",
             environment="test",
         )
         assert tracer is not None
 
     def test_init_with_unknown_instrumentation_does_not_crash(self):
-        import anchor
+        import ward
 
-        tracer = anchor.init(
+        tracer = ward.init(
             application_name="test",
             environment="test",
             instrumentations=["nonexistent"],

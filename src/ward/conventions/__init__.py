@@ -1,5 +1,5 @@
 """
-This module contains the semantic conventions for the Anchor SDK.
+This module contains the semantic conventions for the Ward SDK.
 To standardize semantics for easier integration, maintainence, analytics
 """
 

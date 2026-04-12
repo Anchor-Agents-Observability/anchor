@@ -13,7 +13,7 @@ export async function getOverviewMetrics(tenantId: string) {
         avg(Duration) / 1000000 as avg_latency_ms,
         uniq(SpanAttributes['gen_ai.request.model']) as active_models
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         AND Timestamp >= now() - INTERVAL 24 HOUR
     `,
     query_params: { tenantId: resolvedTenantId },
@@ -42,7 +42,7 @@ export async function getSpansOverTime(tenantId: string, days: number = 7) {
         toDate(Timestamp) as date,
         count() as spans
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         AND Timestamp >= now() - INTERVAL {days:UInt32} DAY
       GROUP BY date
       ORDER BY date
@@ -61,7 +61,7 @@ export async function getCostByModel(tenantId: string, days: number = 7) {
         SpanAttributes['gen_ai.request.model'] as model,
         sum(toFloat64OrZero(SpanAttributes['gen_ai.usage.cost'])) as cost
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         AND Timestamp >= now() - INTERVAL {days:UInt32} DAY
         AND SpanAttributes['gen_ai.request.model'] != ''
       GROUP BY model

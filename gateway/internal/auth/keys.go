@@ -11,6 +11,6 @@ func GenerateAPIKey() (plain string, hash string, err error) {
 		return "", "", err
 	}
 
-	plain = "anchor_" + hex.EncodeToString(raw)
+	plain = "ward_" + hex.EncodeToString(raw)
 	return plain, HashAPIKey(plain), nil
 }

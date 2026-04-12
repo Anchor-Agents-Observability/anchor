@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Integration test: makes a real OpenAI call through Anchor SDK.
+Integration test: makes a real OpenAI call through Ward SDK.
 
 Requires OPENAI_API_KEY in env or .env file.
 Run: python src/tests/openai_test.py
@@ -23,19 +23,19 @@ sdk_path = Path(__file__).parent.parent
 if str(sdk_path) not in sys.path:
     sys.path.insert(0, str(sdk_path))
 
-import anchor
+import ward
 from openai import OpenAI
 
 
 def test_openai_chat_completion():
-    """Integration test: OpenAI chat completion with Anchor instrumentation."""
+    """Integration test: OpenAI chat completion with Ward instrumentation."""
     otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
     if otlp_endpoint and otlp_endpoint.endswith("/v1/traces"):
         otlp_endpoint = otlp_endpoint.replace("/v1/traces", "").rstrip("/")
         print(f"Note: Removed /v1/traces from endpoint. Using: {otlp_endpoint}")
 
-    anchor.init(
-        application_name="anchor-test",
+    ward.init(
+        application_name="ward-test",
         environment="test",
         otlp_endpoint=otlp_endpoint,
     )
@@ -51,7 +51,7 @@ def test_openai_chat_completion():
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": "Say 'Hello from Anchor SDK!' in one sentence."}],
+            messages=[{"role": "user", "content": "Say 'Hello from Ward SDK!' in one sentence."}],
             max_tokens=50,
         )
 

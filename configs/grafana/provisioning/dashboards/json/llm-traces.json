@@ -1,7 +1,7 @@
 {
-  "uid": "anchor-llm-traces",
-  "title": "Anchor SDK - LLM Traces",
-  "tags": ["anchor", "llm", "openai"],
+  "uid": "ward-llm-traces",
+  "title": "Ward SDK - LLM Traces",
+  "tags": ["ward", "llm", "openai"],
   "timezone": "browser",
   "refresh": "30s",
   "time": {

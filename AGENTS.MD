@@ -30,7 +30,7 @@ Primary objective: maximize **signal**, minimize **risk**, keep changes **small 
 ---
 
 ## 2) Repo Topology
-- `src/` — Python SDK (`anchor`)
+- `src/` — Python SDK (`ward`)
 - `gateway/` — Go API gateway
 - `dashboard/` — Next.js web app
 - `configs/` — Collector/ClickHouse/Grafana configs

@@ -1,4 +1,4 @@
-module github.com/anchor-dev/gateway
+module github.com/ward-dev/gateway
 
 go 1.22.7
 

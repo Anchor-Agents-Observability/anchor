@@ -9,10 +9,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "anchor-terraform-state"
+    bucket         = "ward-terraform-state"
     key            = "infra/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "anchor-terraform-locks"
+    dynamodb_table = "ward-terraform-locks"
     encrypt        = true
   }
 }

@@ -1,9 +1,9 @@
 """
-Anchor SDK - Zero-code observability for LLM applications.
+Ward SDK - Zero-code observability for LLM applications.
 
 Usage:
-    import anchor
-    anchor.init(otlp_endpoint="http://localhost:4318")
+    import ward
+    ward.init(otlp_endpoint="http://localhost:4318")
 
     # Your LLM calls are now automatically instrumented.
     from openai import OpenAI
@@ -14,9 +14,9 @@ Usage:
 from typing import Optional
 from opentelemetry import trace as trace_api
 
-from anchor.otel.tracer import setup_tracing
-from anchor.otel.propagators import setup_propagators
-from anchor.instrument_mapper import get_instrumentor
+from ward.otel.tracer import setup_tracing
+from ward.otel.propagators import setup_propagators
+from ward.instrument_mapper import get_instrumentor
 
 __version__ = "0.1.0"
 
@@ -32,7 +32,7 @@ def init(
     **kwargs,
 ) -> Optional[trace_api.Tracer]:
     """
-    Initialize Anchor SDK with tracing and instrumentations.
+    Initialize Ward SDK with tracing and instrumentations.
 
     Args:
         application_name: Name of your application (appears in traces).

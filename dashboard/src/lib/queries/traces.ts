@@ -38,7 +38,7 @@ export async function getTraces(
         toFloat64OrZero(SpanAttributes['gen_ai.usage.cost']) as cost,
         StatusCode as status
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         ${modelFilter}
       ORDER BY Timestamp DESC
       LIMIT {limit:UInt32}
@@ -65,7 +65,7 @@ export async function getTraceDetail(tenantId: string, traceId: string) {
         StatusCode as status,
         StatusMessage as statusMessage
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         AND TraceId = {traceId:String}
       ORDER BY Timestamp ASC
     `,
@@ -81,7 +81,7 @@ export async function getDistinctModels(tenantId: string): Promise<string[]> {
     query: `
       SELECT DISTINCT SpanAttributes['gen_ai.request.model'] as model
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         AND model != ''
       ORDER BY model
     `,

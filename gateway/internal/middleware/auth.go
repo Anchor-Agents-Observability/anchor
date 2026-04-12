@@ -8,7 +8,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/anchor-dev/gateway/internal/auth"
+	"github.com/ward-dev/gateway/internal/auth"
 )
 
 type principalContextKey string

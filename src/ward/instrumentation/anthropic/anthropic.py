@@ -10,8 +10,8 @@ import time
 from typing import Callable, Dict, Any
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind
-from anchor.conventions import SemanticConventions
-from anchor.instrumentation.openai.utils import handle_exception, response_to_dict
+from ward.conventions import SemanticConventions
+from ward.instrumentation.openai.utils import handle_exception, response_to_dict
 
 
 def _get_server_info(instance):
@@ -308,7 +308,7 @@ def _process_message_response(response, span, start_time, request_model, pricing
         if total:
             span.set_attribute(SemanticConventions.GEN_AI_CLIENT_TOKEN_USAGE, total)
 
-    from anchor.pricing import calculate_cost
+    from ward.pricing import calculate_cost
     model = response_dict.get("model", request_model)
     cost = calculate_cost(model, input_tokens, output_tokens, provider="anthropic")
     if cost is not None:

@@ -3,14 +3,14 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "anchor-sdk"
+name = "ward-sdk"
 version = "0.1.0"
 description = "Zero-code observability for LLM applications"
 readme = "readme.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
-    {name = "Anchor Team"}
+    {name = "Ward Team"}
 ]
 keywords = ["opentelemetry", "llm", "observability", "tracing", "openai", "anthropic", "genai"]
 classifiers = [
@@ -46,8 +46,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Anchor-Agents-Observability/anchor"
-Repository = "https://github.com/Anchor-Agents-Observability/anchor"
+Homepage = "https://github.com/Ward-Agents-Obs/ward"
+Repository = "https://github.com/Ward-Agents-Obs/ward"
 
 [tool.setuptools.packages.find]
 where = ["src"]

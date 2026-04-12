@@ -14,7 +14,7 @@ import (
 	resourcev1 "go.opentelemetry.io/proto/otlp/resource/v1"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/anchor-dev/gateway/internal/middleware"
+	"github.com/ward-dev/gateway/internal/middleware"
 )
 
 type Proxy struct {
@@ -88,7 +88,7 @@ func injectTenant(body []byte, tenantID string) ([]byte, error) {
 		if resourceSpans.Resource == nil {
 			resourceSpans.Resource = &resourcev1.Resource{}
 		}
-		upsertStringAttribute(resourceSpans.Resource, "anchor.tenant_id", tenantID)
+		upsertStringAttribute(resourceSpans.Resource, "ward.tenant_id", tenantID)
 	}
 
 	return proto.Marshal(req)

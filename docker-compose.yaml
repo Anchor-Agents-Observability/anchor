@@ -92,23 +92,23 @@ services:
   # Postgres - dashboard orgs, members, API keys (Prisma)
   postgres:
     image: postgres:16-alpine
-    container_name: anchor-postgres
+    container_name: ward-postgres
     # Local mapped to 5434 to avoid port conflicts with other running postgres instances
     ports:
       - "5434:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: anchor
+      POSTGRES_DB: ward
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d anchor"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ward"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # Anchor Dashboard - Next.js web UI
+  # Ward Dashboard - Next.js web UI
   dashboard:
     build:
       context: ./dashboard
@@ -123,7 +123,7 @@ services:
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
       # Always use service DNS; host DATABASE_URL in .env is for Prisma CLI on the machine.
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/anchor
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ward
       - CLICKHOUSE_URL=http://clickhouse:8123
       - CLICKHOUSE_USER=otel
       - CLICKHOUSE_PASSWORD=otelpass
@@ -173,4 +173,4 @@ volumes:
 
 networks:
   default:
-    name: anchor-network
+    name: ward-network

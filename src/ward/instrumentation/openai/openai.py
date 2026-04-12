@@ -16,8 +16,8 @@ import time
 from typing import Callable, Dict, Any
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind
-from anchor.conventions import SemanticConventions
-from anchor.instrumentation.openai.utils import (
+from ward.conventions import SemanticConventions
+from ward.instrumentation.openai.utils import (
     set_server_address_and_port,
     handle_exception,
     response_to_dict,
@@ -585,7 +585,7 @@ def process_audio_response(
 
 def _set_cost_attribute(span, pricing_info, model, input_tokens, output_tokens):
     """Calculate and set cost attribute if pricing info is available."""
-    from anchor.pricing import calculate_cost
+    from ward.pricing import calculate_cost
 
     cost = calculate_cost(model, input_tokens or 0, output_tokens or 0, provider="openai")
     if cost is not None:

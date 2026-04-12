@@ -2,7 +2,7 @@
 Registry that maps provider names (e.g. "openai") to their instrumentor classes.
 
 To add a new provider, add entries to both maps and create the corresponding
-module under anchor/instrumentation/<provider>/.
+module under ward/instrumentation/<provider>/.
 """
 
 import importlib
@@ -15,8 +15,8 @@ MODULE_MAP = {
 
 # provider name → fully qualified instrumentor class path
 INSTRUMENT_MAP = {
-    "openai": "anchor.instrumentation.openai.openaiInstrumentor",
-    "anthropic": "anchor.instrumentation.anthropic.anthropicInstrumentor",
+    "openai": "ward.instrumentation.openai.openaiInstrumentor",
+    "anthropic": "ward.instrumentation.anthropic.anthropicInstrumentor",
 }
 
 
@@ -33,5 +33,5 @@ def get_instrumentor(name):
     except ImportError:
         raise ImportError(
             f"Could not import instrumentor for '{name}'. "
-            f"Make sure the provider package is installed: pip install anchor-sdk[{name}]"
+            f"Make sure the provider package is installed: pip install ward-sdk[{name}]"
         )

@@ -1,10 +1,10 @@
-import anchor
+import ward
 from openai import OpenAI
 from dotenv import get_key, find_dotenv, load_dotenv
 
 load_dotenv()
 
-anchor.init(
+ward.init(
       application_name="my-app",
       otlp_endpoint="http://localhost:8080",
       otlp_headers={"Authorization": "Bearer ak_live_be098ecd94b91e6722c3d36452a5da96"},

@@ -1,5 +1,5 @@
 """
-OpenTelemetry TracerProvider bootstrap for Anchor SDK.
+OpenTelemetry TracerProvider bootstrap for Ward SDK.
 
 Configures the global TracerProvider once, choosing between OTLP and console
 export based on whether an endpoint is provided.
@@ -52,7 +52,7 @@ def setup_tracing(
         os.environ["HAYSTACK_AUTO_TRACE_ENABLED"] = "false"
 
         if not _TRACER_SET:
-            resource_attributes = {TELEMETRY_SDK_NAME: "anchor"}
+            resource_attributes = {TELEMETRY_SDK_NAME: "ward"}
             if application_name:
                 resource_attributes[SERVICE_NAME] = application_name
             if environment:

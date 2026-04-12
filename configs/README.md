@@ -33,9 +33,9 @@ Point your SDK to the collector. Use the **base URL only** — the OTLP HTTP exp
 appends `/v1/traces` automatically:
 
 ```python
-import anchor
+import ward
 
-anchor.init(
+ward.init(
     application_name="my-app",
     otlp_endpoint="http://localhost:4318"  # base URL, no /v1/traces
 )
@@ -47,7 +47,7 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 ```
 Then use port 4317:
 ```python
-anchor.init(otlp_endpoint="http://localhost:4317")
+ward.init(otlp_endpoint="http://localhost:4317")
 ```
 
 ### 4. Verify Data Flow

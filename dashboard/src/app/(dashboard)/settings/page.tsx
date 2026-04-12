@@ -59,10 +59,10 @@ export default async function SettingsPage() {
             <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground">SDK Configuration</h2>
             <div className="mt-5">
               <pre className="overflow-x-auto rounded-2xl bg-background p-4 text-sm text-foreground">
-{`import anchor
+{`import ward
 
-anchor.init(
-    otlp_endpoint="https://ingest.anchor.dev",
+ward.init(
+    otlp_endpoint="https://ingest.ward.dev",
     otlp_headers={"Authorization": "Bearer <your-api-key>"},
     application_name="my-app",
 )`}

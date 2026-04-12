@@ -12,7 +12,7 @@ export async function getCostOverTime(tenantId: string, days: number = 30) {
         SpanAttributes['gen_ai.request.model'] as model,
         sum(toFloat64OrZero(SpanAttributes['gen_ai.usage.cost'])) as cost
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         AND Timestamp >= now() - INTERVAL {days:UInt32} DAY
         AND SpanAttributes['gen_ai.request.model'] != ''
       GROUP BY date, model
@@ -35,7 +35,7 @@ export async function getCostByModelDetailed(tenantId: string, days: number = 30
         sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])) as outputTokens,
         sum(toFloat64OrZero(SpanAttributes['gen_ai.usage.cost'])) as totalCost
       FROM otel_traces
-      WHERE ResourceAttributes['anchor.tenant_id'] = {tenantId:String}
+      WHERE ResourceAttributes['ward.tenant_id'] = {tenantId:String}
         AND Timestamp >= now() - INTERVAL {days:UInt32} DAY
         AND SpanAttributes['gen_ai.request.model'] != ''
       GROUP BY model

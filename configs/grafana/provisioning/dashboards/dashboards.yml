@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: "Anchor"
+  - name: "Ward"
     orgId: 1
-    folder: "Anchor SDK"
+    folder: "Ward SDK"
     type: file
     disableDeletion: false
     editable: true

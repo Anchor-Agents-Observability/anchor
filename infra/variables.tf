@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name used for resource naming"
   type        = string
-  default     = "anchor"
+  default     = "ward"
 }
 
 variable "environment" {
@@ -100,7 +100,7 @@ variable "clickhouse_password" {
 }
 
 variable "domain_name" {
-  description = "Domain name for the gateway (e.g. ingest.anchor.dev). Leave empty to skip DNS."
+  description = "Domain name for the gateway (e.g. ingest.ward.dev). Leave empty to skip DNS."
   type        = string
   default     = ""
 }
